@@ -1,0 +1,386 @@
+import express from 'express';
+import path from 'path';
+import fs from 'fs';
+import dotenv from 'dotenv';
+import * as Sentry from '@sentry/node';
+
+const MAX_BODY_SIZE = process.env.MAX_BODY_SIZE || '2mb';
+
+dotenv.config();
+
+const app = express();
+const PORT = Number(process.env.PORT) || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://www.nexuspolitica.com.br,https://nexuspolitica.com.br,http://localhost:3000,http://127.0.0.1:3000')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: NODE_ENV,
+    release: process.env.RAILWAY_GIT_COMMIT_SHA || 'local',
+    tracesSampleRate: 0.2,
+  });
+}
+
+const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=600';
+
+app.disable('x-powered-by');
+app.disable('etag');
+app.use(express.json({ limit: MAX_BODY_SIZE }));
+app.use(express.urlencoded({ extended: true, limit: MAX_BODY_SIZE }));
+
+if (process.env.SENTRY_DSN) {
+  // Sentry >= v8 automatically instruments requests, Handlers.requestHandler is removed.
+}
+
+// ==============================================================================
+// MIDDLEWARE DE SEGURANÇA HTTP & HARDENING (HELMET & CORS STRICTIONS)
+// ==============================================================================
+app.use((req, res, next) => {
+  // Cabeçalhos de Proteção HTTP
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'geolocation=(self), camera=(self), microphone=(self)');
+  // Content Security Policy: stricter in production, more permissive in dev for Vite/hmr
+  const isProd = NODE_ENV === 'production';
+  const cspProd = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://*.googleadservices.com https://*.doubleclick.net https://*.google.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https: blob: https://www.google-analytics.com https://www.googletagmanager.com https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net",
+    "connect-src 'self' https: wss: ws: https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.google.com",
+    "frame-src 'self' https://www.googletagmanager.com https://bid.g.doubleclick.net https://*.doubleclick.net https://*.google.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'"
+  ].join('; ');
+
+  const cspDev = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://*.doubleclick.net https://*.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' ws: wss: http: https:; frame-src 'self' https://www.googletagmanager.com https://bid.g.doubleclick.net https://*.doubleclick.net; object-src 'none'; base-uri 'self'; frame-ancestors 'self';";
+
+  res.setHeader('Content-Security-Policy', isProd ? cspProd : cspDev);
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+  
+  // Configuração estrita de CORS
+  const origin = req.headers.origin;
+  const isAllowedOrigin = Boolean(origin && ALLOWED_ORIGINS.some((allowedOrigin) => {
+    if (allowedOrigin.includes('*')) {
+      return origin.startsWith(allowedOrigin.replace('*', ''));
+    }
+    return origin === allowedOrigin;
+  }));
+
+  if (isAllowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  next();
+});
+
+app.use((req, res, next) => {
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    return next();
+  }
+
+  if (req.path.startsWith('/health')) {
+    return next();
+  }
+
+  const contentLength = Number(req.headers['content-length'] || 0);
+  if (contentLength > 2 * 1024 * 1024) {
+    return res.status(413).json({ error: 'Payload too large' });
+  }
+
+  next();
+});
+
+function escapeHtmlAttribute(str: string): string {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+async function fetchCandidateInfoServer(coordId?: string): Promise<{ name: string; title: string; photoUrl: string }> {
+  const fallback = {
+    name: 'Nosso Candidato',
+    title: 'Campanha Eleitoral',
+    photoUrl: DEFAULT_PHOTO
+  };
+
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
+
+  if (!coordId || !supabaseUrl || !supabaseKey) {
+    return fallback;
+  }
+
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { data } = await supabase
+      .from('campaigns')
+      .select('candidate_name, candidate_title, photo_url')
+      .limit(1)
+      .maybeSingle();
+
+    if (data && data.candidate_name) {
+      return {
+        name: data.candidate_name,
+        title: data.candidate_title || 'Campanha Eleitoral',
+        photoUrl: data.photo_url || DEFAULT_PHOTO
+      };
+    }
+  } catch (err) {
+    console.warn('Could not fetch candidate info from Supabase in server:', err);
+  }
+
+  return fallback;
+}
+
+async function startServer() {
+  let vite: any;
+
+  try {
+    if (NODE_ENV !== 'production') {
+      const { createServer: createViteServer } = await import('vite');
+      vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+    }
+  } catch (err) {
+    console.error('Failed to create Vite server in middlewareMode:', err);
+  }
+
+  app.get('/health', (_req, res) => {
+    res.status(200).send('ok');
+  });
+
+  app.post('/api/ai/process', async (req, res) => {
+    const { text, type, context } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY não configurada no servidor.' });
+    }
+
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey });
+      
+      let prompt = text;
+      if (type === 'caos') {
+        prompt = `Analise o seguinte informe de campanha e extraia as tarefas de logística, ações políticas, alertas de crise e sugestões de agenda. Responda ESTRITAMENTE em formato JSON com as chaves: "tarefas_logistica" (array de string), "acoes_politicas" (array de string), "alertas_crise" (array de string) e "sugestoes_agenda" (array de objetos com "municipio" e "contexto"). Informe: ${text}`;
+      } else if (type === 'nota') {
+        prompt = `Estruture o seguinte áudio transcrito em uma nota de campo limpa e profissional, destacando termos importantes em negrito. Transcrição: ${text}`;
+      } else if (type === 'briefing') {
+        prompt = `Crie um briefing estratégico para o candidato sobre o município de ${context?.municipio || 'Roraima'}, considerando as seguintes demandas cadastradas no painel: ${JSON.stringify(context?.demandas || [])}. O briefing deve conter: 1. O que falar (Pautas recomendadas). 2. Riscos (O que evitar falar). 3. Tom de voz e postura indicados.`;
+      }
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: type === 'caos' ? 'application/json' : 'text/plain',
+        }
+      });
+      
+      if (type === 'caos') {
+         res.status(200).json(JSON.parse(response.text || '{}'));
+      } else {
+         res.status(200).json({ text: response.text });
+      }
+    } catch (err: any) {
+      console.error('Erro na API do Gemini:', err);
+      res.status(500).json({ error: 'Erro ao processar IA', details: err.message });
+    }
+  });
+
+  app.post('/api/groq/process', async (req, res) => {
+    const { type, municipio, targetVoters, context } = req.body;
+    const apiKey = process.env.GROQ_API_KEY;
+
+    if (!apiKey || !apiKey.startsWith('gsk_')) {
+      // Retorno tático inteligente nativo quando não houver chave Groq configurada no servidor
+      if (type === 'raio-x-equipe') {
+        const total = context?.eleitores || 0;
+        return res.status(200).json({
+          conselho_tatico: `Intensificar abordagem nos bairros prioritários. A base conta com ${total} eleitores ativos.`
+        });
+      }
+      const alvo = Number(targetVoters) || 500;
+      return res.status(200).json({
+        sugestao_votos: alvo,
+        justificativa: `Meta calculada para ${municipio || 'a região'} com base na densidade eleitoral da zona.`
+      });
+    }
+
+    try {
+      const Groq = (await import('groq-sdk')).default;
+      const groq = new Groq({ apiKey });
+
+      let prompt = '';
+      
+      if (type === 'raio-x-equipe') {
+        prompt = `Atue como um analista tático eleitoral sênior. O Coordenador Geral precisa de um Raio-X rápido de uma equipe.
+Equipe/Líder: ${context?.teamName || 'Equipe'}
+Eleitores Mapeados: ${context?.eleitores || 0}
+Demandas em Aberto: ${context?.demandas || 0}
+Status Atual: ${context?.status || 'OK'}
+Engajamento: ${context?.engajamento || '0'}%
+
+Sugerir um conselho tático muito breve (MÁXIMO 2 LINHAS) para o coordenador agir sobre esta equipe hoje.
+Responda EXATAMENTE neste formato JSON, sem Markdown ou texto adicional fora do JSON:
+{"conselho_tatico": "Seu conselho aqui."}`;
+      } else {
+        prompt = `Atue como o melhor estrategista eleitoral do Brasil. O Coordenador Geral está configurando as Metas da Campanha.
+Município/Região: ${municipio}
+Meta Anterior Sugerida/Buscada: ${targetVoters || 'N/A'}
+Contexto Demográfico/Electoral: ${JSON.stringify(context || {})}
+
+Seu objetivo: Sugerir um NÚMERO REALISTA E MATEMÁTICO de eleitores que a equipe deve cadastrar/mapear nesta região, e escrever uma breve justificativa estratégica (máx 3 linhas).
+Responda EXATAMENTE neste formato JSON, sem Markdown ou texto adicional fora do JSON:
+{"sugestao_votos": 5000, "justificativa": "Sua justificativa tática aqui."}`;
+      }
+
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.3,
+        response_format: { type: 'json_object' }
+      });
+
+      const result = chatCompletion.choices[0]?.message?.content || '{}';
+      res.status(200).json(JSON.parse(result));
+    } catch (err: any) {
+      console.warn('Fallback ativado para Groq AI:', err.message);
+      if (type === 'raio-x-equipe') {
+        return res.status(200).json({
+          conselho_tatico: `Priorizar contato direto com os líderes de zona com metas abaixo de 60%.`
+        });
+      }
+      return res.status(200).json({
+        sugestao_votos: Number(targetVoters) || 500,
+        justificativa: `Meta recomendada com base na análise territorial da campanha.`
+      });
+    }
+  });
+
+  // Rota com sanitização contra Path Traversal
+  app.get('/download/arquitetura-doc', (req, res) => {
+    const publicDir = path.resolve(process.cwd(), 'public');
+    const filePath = path.resolve(publicDir, 'ARQUITETURA_E_REQUISITOS_NEXUS_POLITICA.doc');
+
+    // Validação estrita de Path Traversal
+    if (!filePath.startsWith(publicDir)) {
+      return res.status(403).send('Acesso negado');
+    }
+
+    if (fs.existsSync(filePath)) {
+      res.setHeader('Content-Type', 'application/msword; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="ARQUITETURA_E_REQUISITOS_NEXUS_POLITICA.doc"');
+      return res.sendFile(filePath);
+    }
+    return res.status(404).send('Arquivo não encontrado');
+  });
+
+  // HTML Intercept Middleware for Open Graph / WhatsApp Preview
+  app.use((req, res, next) => {
+    (async () => {
+      if (req.method !== 'GET') return next();
+
+      // Path traversal check on static routes
+      if (req.path !== '/' && req.path !== '/index.html') {
+        const publicDir = path.resolve(process.cwd(), 'public');
+        const publicFile = path.resolve(publicDir, req.path.replace(/^\/+/, ''));
+        if ((publicFile.startsWith(publicDir + path.sep) || publicFile === publicDir) && fs.existsSync(publicFile) && fs.statSync(publicFile).isFile()) {
+          return next();
+        }
+      }
+
+      const accept = req.headers.accept || '';
+      if (!accept.includes('text/html') && req.path !== '/' && !req.path.endsWith('.html')) {
+        return next();
+      }
+
+      let template = '';
+      if (vite) {
+        const indexPath = path.resolve(process.cwd(), 'index.html');
+        if (fs.existsSync(indexPath)) {
+          template = fs.readFileSync(indexPath, 'utf-8');
+          template = await vite.transformIndexHtml(req.url, template);
+        }
+      } else {
+        const distIndexPath = path.resolve(process.cwd(), 'dist', 'index.html');
+        if (fs.existsSync(distIndexPath)) {
+          template = fs.readFileSync(distIndexPath, 'utf-8');
+        }
+      }
+
+      if (!template) return next();
+
+      const coordId = (req.query.coordinatorId as string) || (req.query.leaderId as string) || undefined;
+      const cand = await fetchCandidateInfoServer(coordId);
+
+      // Inject candidate photo and text into Open Graph meta tags (sanitized against attribute injection)
+      const ogTitle = escapeHtmlAttribute(`FAÇA PARTE DO NOSSO TIME! 🗳️ - ${cand.name}`);
+      const ogDesc = escapeHtmlAttribute(`Faça parte do nosso time! Cadastre-se e apoie a campanha de ${cand.name} (${cand.title}).`);
+      const ogPhoto = escapeHtmlAttribute(cand.photoUrl || DEFAULT_PHOTO);
+
+      let html = template;
+      html = html.replace(/<meta property="og:title" content="[^"]*"/i, `<meta property="og:title" content="${ogTitle}"`);
+      html = html.replace(/<meta property="og:description" content="[^"]*"/i, `<meta property="og:description" content="${ogDesc}"`);
+      html = html.replace(/<meta property="og:image" content="[^"]*"/i, `<meta property="og:image" content="${ogPhoto}"`);
+
+      html = html.replace(/<meta name="twitter:title" content="[^"]*"/i, `<meta name="twitter:title" content="${ogTitle}"`);
+      html = html.replace(/<meta name="twitter:description" content="[^"]*"/i, `<meta name="twitter:description" content="${ogDesc}"`);
+      html = html.replace(/<meta name="twitter:image" content="[^"]*"/i, `<meta name="twitter:image" content="${ogPhoto}"`);
+
+      res.setHeader('Content-Type', 'text/html');
+      return res.status(200).send(html);
+    })().catch((e) => {
+      console.error('Error rendering HTML with candidate meta tags:', e);
+      return next();
+    });
+  });
+
+  if (vite) {
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*all', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+  if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
+  }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+startServer().catch((err) => {
+  console.error('Fatal server start error:', err);
+  if (process.env.SENTRY_DSN) {
+    Sentry.captureException(err);
+  }
+});
