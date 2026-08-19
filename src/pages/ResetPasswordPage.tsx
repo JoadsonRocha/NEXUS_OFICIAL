@@ -74,7 +74,10 @@ export default function ResetPasswordPage(): JSX.Element {
           <div>
             <p style={{ color: 'green', marginTop: '15px', fontSize: '15px', fontWeight: 'bold' }}>{message}</p>
             <button 
-              onClick={() => window.location.href = '/login'}
+              onClick={async () => {
+                await supabase.auth.signOut();
+                window.location.href = '/login';
+              }}
               style={{ width: '100%', marginTop: '20px', padding: '12px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
             >
               Ir para a Página de Login
