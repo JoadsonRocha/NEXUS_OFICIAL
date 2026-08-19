@@ -8,14 +8,14 @@ import { ForcePasswordChangePage } from './pages/ForcePasswordChangePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdvancedDashboardPage } from './pages/AdvancedDashboardPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
 
-// Lazy loading heavy components
+// Lazy loading heavy and external components
 const PublicVoterRegister = lazy(() => import('./components/PublicVoterRegister'));
 const SalesLandingPage = lazy(() => import('./components/SalesLandingPage').then(m => ({ default: m.SalesLandingPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then(m => ({ default: m.TermsPage })));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const CookiesPage = lazy(() => import('./pages/CookiesPage').then(m => ({ default: m.CookiesPage })));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 
 import { useAuth } from './lib/SupabaseProvider';
 import { supabaseService } from './lib/supabaseService';
@@ -30,7 +30,6 @@ function SalesLandingWrapper() {
   const { user, sessionLocked } = useAuth();
   const isLoggedIn = !!user && !sessionLocked;
 
-  // Check URL search params
   const searchParams = new URLSearchParams(window.location.search);
   const hasAccessParams = searchParams.has('email') || searchParams.has('access_token') || searchParams.has('role');
   const hasVoterRegisterParams = !hasAccessParams && (
@@ -41,17 +40,14 @@ function SalesLandingWrapper() {
     searchParams.has('inviter')
   );
 
-  // 1. Redirecionar links de acesso operacional (coordenadores / líderes) diretamente para /login
   if (hasAccessParams && !isLoggedIn) {
     return <Navigate to={`/login?${searchParams.toString()}`} replace />;
   }
 
-  // 2. Se já estiver logado, ir para o dashboard
   if (isLoggedIn) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // 3. Se for link exclusivo de cadastro de eleitor na raiz, redirecionar para a rota canônica /cadastro
   if (hasVoterRegisterParams) {
     return <Navigate to={`/cadastro?${searchParams.toString()}`} replace />;
   }
@@ -67,12 +63,10 @@ function SalesLandingWrapper() {
   );
 }
 
-// Wrapper to handle external registration URL parameters vs route params
 function PublicRegisterWrapper() {
   const searchParams = new URLSearchParams(window.location.search);
   const hasAccessParams = searchParams.has('email') && (searchParams.has('access_token') || searchParams.has('role'));
 
-  // Se alguém acessar /cadastro com link de coordenador/líder, redirecionar para /login
   if (hasAccessParams) {
     return <Navigate to={`/login?${searchParams.toString()}`} replace />;
   }
@@ -90,24 +84,19 @@ export default function App() {
       <SyncIndicator />
       <Suspense fallback={<ComponentLoader />}>
         <Routes>
-        {/* Landing Page */}
         <Route path="/" element={<SalesLandingWrapper />} />
 
-        {/* Public Routes */}
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
 
-        {/* Public external register */}
         <Route path="/cadastro" element={<PublicRegisterWrapper />} />
 
-        {/* Legal Pages */}
         <Route path="/termos" element={<TermsPage />} />
         <Route path="/privacidade" element={<PrivacyPage />} />
         <Route path="/cookies" element={<CookiesPage />} />
 
-        {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/change-password" element={<ForcePasswordChangePage />} />
           <Route element={<Layout />}>
