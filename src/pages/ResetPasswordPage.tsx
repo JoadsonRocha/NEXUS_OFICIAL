@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import supabase from '../lib/supabase';
 
 export default function ResetPasswordPage(): JSX.Element {
   const [password, setPassword] = useState<string>('');
@@ -9,12 +9,8 @@ export default function ResetPasswordPage(): JSX.Element {
   const [isReady, setIsReady] = useState<boolean>(false);
 
   useEffect(() => {
-    // Verifica se o usuário chegou através de um link de recuperação de senha válido
     const handleRecovery = async () => {
-      // O Supabase processa o hash (#) da URL automaticamente ao carregar
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // Se houver parâmetros de recovery ou sessão ativa gerada pelo link, liberamos o form
+      await supabase.auth.getSession();
       setIsReady(true);
     };
 
