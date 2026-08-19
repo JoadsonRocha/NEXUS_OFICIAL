@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function ResetPasswordPage(): JSX.Element {
@@ -6,6 +6,20 @@ export default function ResetPasswordPage(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [isReady, setIsReady] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Verifica se o usuário chegou através de um link de recuperação de senha válido
+    const handleRecovery = async () => {
+      // O Supabase processa o hash (#) da URL automaticamente ao carregar
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Se houver parâmetros de recovery ou sessão ativa gerada pelo link, liberamos o form
+      setIsReady(true);
+    };
+
+    handleRecovery();
+  }, []);
 
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -23,6 +37,14 @@ export default function ResetPasswordPage(): JSX.Element {
 
     setLoading(false);
   };
+
+  if (!isReady) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f4f6f8', fontFamily: 'sans-serif' }}>
+        <p>Carregando...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f4f6f8', fontFamily: 'sans-serif' }}>
