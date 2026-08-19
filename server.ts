@@ -9,7 +9,7 @@ const MAX_BODY_SIZE = process.env.MAX_BODY_SIZE || '2mb';
 dotenv.config();
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://www.nexuspolitica.com.br,https://nexuspolitica.com.br,http://localhost:3000,http://127.0.0.1:3000')
   .split(',')
@@ -46,6 +46,7 @@ app.use((req, res, next) => {
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'geolocation=(self), camera=(self), microphone=(self)');
+  
   // Content Security Policy: stricter in production, more permissive in dev for Vite/hmr
   const isProd = NODE_ENV === 'production';
   const cspProd = [
@@ -216,7 +217,6 @@ async function startServer() {
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey || !apiKey.startsWith('gsk_')) {
-      // Retorno tático inteligente nativo quando não houver chave Groq configurada no servidor
       if (type === 'raio-x-equipe') {
         const total = context?.eleitores || 0;
         return res.status(200).json({
@@ -281,12 +281,10 @@ Responda EXATAMENTE neste formato JSON, sem Markdown ou texto adicional fora do 
     }
   });
 
-  // Rota com sanitização contra Path Traversal
   app.get('/download/arquitetura-doc', (req, res) => {
     const publicDir = path.resolve(process.cwd(), 'public');
     const filePath = path.resolve(publicDir, 'ARQUITETURA_E_REQUISITOS_NEXUS_POLITICA.doc');
 
-    // Validação estrita de Path Traversal
     if (!filePath.startsWith(publicDir)) {
       return res.status(403).send('Acesso negado');
     }
@@ -299,12 +297,10 @@ Responda EXATAMENTE neste formato JSON, sem Markdown ou texto adicional fora do 
     return res.status(404).send('Arquivo não encontrado');
   });
 
-  // HTML Intercept Middleware for Open Graph / WhatsApp Preview
   app.use((req, res, next) => {
     (async () => {
       if (req.method !== 'GET') return next();
 
-      // Path traversal check on static routes
       if (req.path !== '/' && req.path !== '/index.html') {
         const publicDir = path.resolve(process.cwd(), 'public');
         const publicFile = path.resolve(publicDir, req.path.replace(/^\/+/, ''));
@@ -337,7 +333,6 @@ Responda EXATAMENTE neste formato JSON, sem Markdown ou texto adicional fora do 
       const coordId = (req.query.coordinatorId as string) || (req.query.leaderId as string) || undefined;
       const cand = await fetchCandidateInfoServer(coordId);
 
-      // Inject candidate photo and text into Open Graph meta tags (sanitized against attribute injection)
       const ogTitle = escapeHtmlAttribute(`FAÇA PARTE DO NOSSO TIME! 🗳️ - ${cand.name}`);
       const ogDesc = escapeHtmlAttribute(`Faça parte do nosso time! Cadastre-se e apoie a campanha de ${cand.name} (${cand.title}).`);
       const ogPhoto = escapeHtmlAttribute(cand.photoUrl || DEFAULT_PHOTO);
@@ -364,7 +359,7 @@ Responda EXATAMENTE neste formato JSON, sem Markdown ou texto adicional fora do 
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*all', (req, res) => {
+    app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
@@ -373,7 +368,7 @@ Responda EXATAMENTE neste formato JSON, sem Markdown ou texto adicional fora do 
     Sentry.setupExpressErrorHandler(app);
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  app.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
   });
 }
