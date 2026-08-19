@@ -88,8 +88,9 @@ export default function App() {
 
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
+
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route path="/cadastro" element={<PublicRegisterWrapper />} />
 
