@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 export default function ResetPasswordPage() {
@@ -7,7 +7,7 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handleResetPassword = async (e: any) => {
     e.preventDefault();
     setLoading(true);
     setError('');
