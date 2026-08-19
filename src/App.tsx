@@ -8,14 +8,14 @@ import { ForcePasswordChangePage } from './pages/ForcePasswordChangePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdvancedDashboardPage } from './pages/AdvancedDashboardPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
-// Lazy loading heavy and external components
+// Lazy loading heavy components
 const PublicVoterRegister = lazy(() => import('./components/PublicVoterRegister'));
 const SalesLandingPage = lazy(() => import('./components/SalesLandingPage').then(m => ({ default: m.SalesLandingPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then(m => ({ default: m.TermsPage })));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const CookiesPage = lazy(() => import('./pages/CookiesPage').then(m => ({ default: m.CookiesPage })));
-const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 
 import { useAuth } from './lib/SupabaseProvider';
 import { supabaseService } from './lib/supabaseService';
