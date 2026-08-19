@@ -8,6 +8,7 @@ import { ForcePasswordChangePage } from './pages/ForcePasswordChangePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdvancedDashboardPage } from './pages/AdvancedDashboardPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // Lazy loading heavy components
 const PublicVoterRegister = lazy(() => import('./components/PublicVoterRegister'));
@@ -95,6 +96,7 @@ export default function App() {
         {/* Public Routes */}
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
 
         {/* Public external register */}
