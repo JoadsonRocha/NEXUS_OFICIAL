@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import supabase from '../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+// Inicialização direta e independente para evitar qualquer conflito de exportação
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function ResetPasswordPage(): JSX.Element {
   const [password, setPassword] = useState<string>('');
