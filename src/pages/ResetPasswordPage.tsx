@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase'; // Ajuste o caminho do supabase se necessário
+import { useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -13,22 +13,19 @@ export default function ResetPasswordPage() {
     setError('');
     setMessage('');
 
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error: updateError } = await supabase.auth.updateUser({ password });
 
-    if (error) {
-      setError(error.message);
+    if (updateError) {
+      setError(updateError.message);
     } else {
-      setMessage('Senha alterada com sucesso! Você já pode fazer login.');
-      setTimeout(() => {
-        window.location.href = '/'; // Redireciona para o login
-      }, 3000);
+      setMessage('Senha alterada com sucesso! Você já pode fechar esta página e fazer login.');
     }
 
     setLoading(false);
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f4f6f8' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f4f6f8', fontFamily: 'sans-serif' }}>
       <div style={{ background: 'white', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
         <h2>Redefinir Senha</h2>
         <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>Digite sua nova senha abaixo.</p>
@@ -51,8 +48,8 @@ export default function ResetPasswordPage() {
           </button>
         </form>
 
-        {message && <p style={{ color: 'green', marginTop: '15px' }}>{message}</p>}
-        {error && <p style={{ color: 'red', marginTop: '15px' }}>{error}</p>}
+        {message && <p style={{ color: 'green', marginTop: '15px', fontSize: '14px' }}>{message}</p>}
+        {error && <p style={{ color: 'red', marginTop: '15px', fontSize: '14px' }}>{error}</p>}
       </div>
     </div>
   );
