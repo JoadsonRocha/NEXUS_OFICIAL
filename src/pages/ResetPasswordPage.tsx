@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// Inicialização direta e independente para evitar qualquer conflito de exportação
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -33,7 +32,7 @@ export default function ResetPasswordPage(): JSX.Element {
     if (updateError) {
       setError(updateError.message);
     } else {
-      setMessage('Senha alterada com sucesso! Você já pode fechar esta página e fazer login.');
+      setMessage('Senha alterada com sucesso!');
     }
 
     setLoading(false);
@@ -53,25 +52,36 @@ export default function ResetPasswordPage(): JSX.Element {
         <h2>Redefinir Senha</h2>
         <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>Digite sua nova senha abaixo.</p>
         
-        <form onSubmit={handleResetPassword}>
-          <input 
-            type="password" 
-            placeholder="Nova senha" 
-            value={password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-            required
-            style={{ width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
-          />
-          <button 
-            type="submit" 
-            disabled={loading}
-            style={{ width: '100%', padding: '12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
-          >
-            {loading ? 'Salvando...' : 'Salvar Nova Senha'}
-          </button>
-        </form>
+        {!message ? (
+          <form onSubmit={handleResetPassword}>
+            <input 
+              type="password" 
+              placeholder="Nova senha" 
+              value={password}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+              required
+              style={{ width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
+            />
+            <button 
+              type="submit" 
+              disabled={loading}
+              style={{ width: '100%', padding: '12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              {loading ? 'Salvando...' : 'Salvar Nova Senha'}
+            </button>
+          </form>
+        ) : (
+          <div>
+            <p style={{ color: 'green', marginTop: '15px', fontSize: '15px', fontWeight: 'bold' }}>{message}</p>
+            <button 
+              onClick={() => window.location.href = '/login'}
+              style={{ width: '100%', marginTop: '20px', padding: '12px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              Ir para a Página de Login
+            </button>
+          </div>
+        )}
 
-        {message && <p style={{ color: 'green', marginTop: '15px', fontSize: '14px' }}>{message}</p>}
         {error && <p style={{ color: 'red', marginTop: '15px', fontSize: '14px' }}>{error}</p>}
       </div>
     </div>
