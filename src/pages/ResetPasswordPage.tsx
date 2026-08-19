@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import supabase from '../lib/supabase';
+import React, { useState } from 'react';
+import { supabase } from '../lib/supabase';
 
-export default function ResetPasswordPage() {
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+export default function ResetPasswordPage(): JSX.Element {
+  const [password, setPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
-  const handleResetPassword = async (e: any) => {
+  const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -35,7 +35,7 @@ export default function ResetPasswordPage() {
             type="password" 
             placeholder="Nova senha" 
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             required
             style={{ width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
           />
