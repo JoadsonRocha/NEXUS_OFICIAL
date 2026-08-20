@@ -235,17 +235,31 @@ export function LoginPage() {
             
             const shouldForce = preRegDoc?.forcePasswordChange !== false && !preRegDoc?.passwordChangedAt;
 
-            await signupWithEmail(email, password, effectiveRole, {
-              name: preRegDoc?.name || email.split('@')[0],
-              phone: preRegDoc?.phone || '',
-              address: preRegDoc?.address || '',
-              region: effectiveRegion,
-              teamName: preRegDoc?.teamName || '',
-              teamId: effectiveTeamId,
-              coordinatorId: effectiveCoordinatorId,
-              regionalCoordId: effectiveRegionalCoordId,
-              forcePasswordChange: shouldForce
-            });
+            try {
+              await signupWithEmail(email, password, effectiveRole, {
+                name: preRegDoc?.name || email.split('@')[0],
+                phone: preRegDoc?.phone || '',
+                address: preRegDoc?.address || '',
+                region: effectiveRegion,
+                teamName: preRegDoc?.teamName || '',
+                teamId: effectiveTeamId,
+                coordinatorId: effectiveCoordinatorId,
+                regionalCoordId: effectiveRegionalCoordId,
+                forcePasswordChange: shouldForce
+              });
+            } catch (signupErr: any) {
+              const signupErrStr = (signupErr.message || '').toLowerCase();
+              if (
+                signupErrStr.includes('already registered') || 
+                signupErrStr.includes('already exists') || 
+                signupErrStr.includes('user_already_exists') || 
+                signupErrStr.includes('email_exists') ||
+                signupErr?.status === 422
+              ) {
+                throw new Error('Este e-mail já possui uma conta ativa. A senha informada no link ou formulário não confere com a sua senha cadastrada. Digite sua senha habitual ou clique em "Esqueceu a senha?".');
+              }
+              throw signupErr;
+            }
           } else {
             throw err;
           }
@@ -255,22 +269,39 @@ export function LoginPage() {
       console.error("Auth error caught:", err);
       const errorMsg = err.message || '';
       const errorCode = err.code || '';
+      const lowerMsg = errorMsg.toLowerCase();
 
-      if (errorCode === 'auth/email-already-in-use' || errorMsg.includes('email-already-in-use') || errorMsg.includes('User already registered') || errorMsg.includes('user_already_exists')) {
-        setAuthError('Este e-mail já possui uma conta ativa. A senha informada está incorreta. Verifique suas credenciais ou clique em "Esqueceu a senha?".');
-      } else if (errorCode === 'auth/invalid-credential' || errorMsg.includes('invalid-credential') || errorMsg.includes('INVALID_LOGIN_CREDENTIALS') || errorMsg.includes('invalid login credentials')) {
-        setAuthError('Chave de acesso ou senha incorreta. Verifique os dados digitados ou clique em "Esqueceu a senha?".');
-      } else if (errorCode === 'auth/user-not-found' || errorMsg.includes('user-not-found')) {
-        setAuthError('Operador não encontrado. Certifique-se de que seu e-mail foi cadastrado pela coordenação.');
-      } else if (errorCode === 'auth/too-many-requests' || errorMsg.includes('too-many-requests') || errorMsg.includes('rate limit')) {
-        setAuthError('Muitas tentativas em pouco tempo. Aguarde alguns instantes antes de tentar novamente.');
-      } else if (errorMsg.includes('Email not confirmed')) {
-        setAuthError('Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de validação.');
+      if (
+        errorCode === 'auth/email-already-in-use' || 
+        lowerMsg.includes('email-already-in-use') || 
+        lowerMsg.includes('user already registered') || 
+        lowerMsg.includes('user_already_exists') || 
+        lowerMsg.includes('already registered') ||
+        lowerMsg.includes('já possui uma conta')
+      ) {
+        setAuthError('Este e-mail já possui uma conta ativa. A senha informada no link ou formulário não confere com a senha cadastrada. Digite sua senha habitual ou clique em "Esqueceu a senha?".');
+      } else if (
+        errorCode === 'auth/invalid-credential' || 
+        lowerMsg.includes('invalid-credential') || 
+        lowerMsg.includes('invalid_login_credentials') || 
+        lowerMsg.includes('invalid login credentials') ||
+        lowerMsg.includes('invalid_grant')
+      ) {
+        setAuthError('E-mail ou senha incorretos. Se este é um link de convite, verifique se a conta já foi criada anteriormente com outra senha.');
+      } else if (errorCode === 'auth/user-not-found' || lowerMsg.includes('user-not-found') || lowerMsg.includes('user not found')) {
+        setAuthError('Operador não encontrado. Certifique-se de que seu e-mail foi cadastrado previamente pela coordenação.');
+      } else if (errorCode === 'auth/too-many-requests' || lowerMsg.includes('too-many-requests') || lowerMsg.includes('rate limit') || lowerMsg.includes('over_email_send_rate_limit')) {
+        setAuthError('Muitas tentativas em pouco tempo por segurança. Aguarde 1 minuto antes de tentar novamente.');
+      } else if (lowerMsg.includes('email not confirmed') || lowerMsg.includes('email_not_confirmed')) {
+        setAuthError('Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de ativação.');
+      } else if (lowerMsg.includes('password should be at least') || lowerMsg.includes('senha deve ter')) {
+        setAuthError('A senha deve ter no mínimo 6 caracteres.');
       } else {
-        setAuthError(errorMsg || 'Erro na autenticação. Verifique suas credenciais.');
+        setAuthError(errorMsg || 'Erro na autenticação. Verifique os dados informados.');
       }
     } finally {
       setIsLoading(false);
+      setAuthInfo('');
     }
   };
 
@@ -464,9 +495,24 @@ export function LoginPage() {
           {/* Error Message */}
           {authError && (
             <div className="space-y-2 pt-1">
-              <p className="text-red-500 text-xs font-semibold text-center bg-red-500/10 py-2 px-3 rounded-xl border border-red-500/20">
-                {authError}
-              </p>
+              <div className="bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl p-3 text-center space-y-2">
+                <p className="text-xs font-semibold leading-relaxed">
+                  {authError}
+                </p>
+                {(authError.includes('senha') || authError.includes('credenciais') || authError.includes('link')) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(email);
+                      setForgotError('');
+                      setShowForgotModal(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/20 hover:bg-red-500 hover:text-white text-red-600 dark:text-red-400 font-bold text-[10px] rounded-lg transition-all active:scale-95 cursor-pointer uppercase tracking-wider"
+                  >
+                    <KeyRound className="w-3 h-3" /> Recuperar / Redefinir Senha
+                  </button>
+                )}
+              </div>
               
               {showDomainGuide && (
                 <div className="bg-blue-600/5 border border-blue-600/20 rounded-xl p-3 text-left space-y-2 text-xs">

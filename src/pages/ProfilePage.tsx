@@ -55,6 +55,8 @@ export function ProfilePage() {
     status: 'active'
   });
 
+  const [profileDoc, setProfileDoc] = useState<any>(null);
+
   // Load User Data & Candidate Data
   useEffect(() => {
     if (!user?.uid) return;
@@ -64,6 +66,7 @@ export function ProfilePage() {
     // Initial fetch from users collection
     supabaseService.getDocument<any>('users', user.uid).then((doc) => {
       if (isMounted && doc) {
+        setProfileDoc(doc);
         setName(doc.name || user.displayName || user.email?.split('@')[0] || '');
         setPhone(doc.phone || '');
         setPhotoUrl(doc.photoUrl || user.photoURL || '');
@@ -118,25 +121,13 @@ export function ProfilePage() {
       } else {
         const reader = new FileReader();
         reader.onloadend = () => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 400;
-            const scaleSize = MAX_WIDTH / img.width;
-            canvas.width = MAX_WIDTH;
-            canvas.height = img.height * scaleSize;
-            const ctx = canvas.getContext('2d');
-            ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-            const base64 = canvas.toDataURL('image/jpeg', 0.8);
-            setPhotoUrl(base64);
-          };
-          img.src = reader.result as string;
+          setPhotoUrl(reader.result as string);
         };
         reader.readAsDataURL(file);
       }
     } catch (err) {
-      console.error("Falha ao carregar imagem de perfil:", err);
-      alert("Não foi possível carregar a imagem. Tente novamente ou use um link de imagem online.");
+      console.error("Erro no upload da foto de perfil:", err);
+      alert("Falha no upload da foto. Tente novamente.");
     } finally {
       setIsUploadingPhoto(false);
     }
@@ -151,29 +142,17 @@ export function ProfilePage() {
     try {
       const uploadedUrl = await supabaseService.uploadImage(file, 'public_assets');
       if (uploadedUrl) {
-        setCandidateForm(prev => ({ ...prev, photoUrl: uploadedUrl }));
+        setCandidateForm((prev: any) => ({ ...prev, photoUrl: uploadedUrl }));
       } else {
         const reader = new FileReader();
         reader.onloadend = () => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 500;
-            const scaleSize = MAX_WIDTH / img.width;
-            canvas.width = MAX_WIDTH;
-            canvas.height = img.height * scaleSize;
-            const ctx = canvas.getContext('2d');
-            ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-            const base64 = canvas.toDataURL('image/jpeg', 0.8);
-            setCandidateForm(prev => ({ ...prev, photoUrl: base64 }));
-          };
-          img.src = reader.result as string;
+          setCandidateForm((prev: any) => ({ ...prev, photoUrl: reader.result as string }));
         };
         reader.readAsDataURL(file);
       }
     } catch (err) {
-      console.error("Falha ao carregar foto do candidato:", err);
-      alert("Erro ao enviar foto do candidato. Tente novamente ou cole o link direto.");
+      console.error("Erro no upload da foto do candidato:", err);
+      alert("Falha no upload da foto do candidato. Tente novamente.");
     } finally {
       setIsUploadingCandidatePhoto(false);
     }
@@ -198,7 +177,7 @@ export function ProfilePage() {
       await supabaseService.setDocument('users', user.uid, updates, true);
 
       // 2. Save candidate info ONLY if Coordenador Geral
-      if (isGeral) {
+      if (isGeral && !isCoordenadorRegional) {
         const activeCoordId = user.coordinatorId || user.uid;
         await candidateService.saveCandidateInfo(candidateForm, user.uid, activeCoordId);
       }
@@ -211,10 +190,16 @@ export function ProfilePage() {
     }
   };
 
+  const isCoordenadorRegional = isRegional || 
+    user?.role === 'coordenador_regional' || 
+    profileDoc?.role === 'coordenador_regional' || 
+    (user?.email && user.email.toLowerCase().includes('antonio')) ||
+    (profileDoc?.email && profileDoc.email.toLowerCase().includes('antonio'));
+
   const getRoleBadgeLabel = () => {
-    if (isRegional || (user?.email && user.email.toLowerCase().includes('antonio'))) return 'Coordenador Regional';
-    if (isGeral) return 'Coordenador Geral';
-    if (isLeader) return 'Líder de Equipe / Bairro';
+    if (isCoordenadorRegional) return 'Coordenador Regional';
+    if (isGeral || user?.role === 'coordenador_geral' || profileDoc?.role === 'coordenador_geral') return 'Coordenador Geral';
+    if (isLeader || user?.role === 'lider' || profileDoc?.role === 'lider') return 'Líder de Equipe / Bairro';
     return 'Operador do Sistema';
   };
 
@@ -248,7 +233,11 @@ export function ProfilePage() {
                 Meu Perfil e Configurações
               </h1>
               <p className="text-xs text-[var(--text-secondary)] font-normal">
-                Gerencie seus dados e as informações do candidato da campanha
+                {isCoordenadorRegional 
+                  ? 'Gerencie seus dados pessoais e operacionais da sua regional' 
+                  : isLeader 
+                  ? 'Gerencie seus dados de liderança de equipe' 
+                  : 'Gerencie seus dados e as informações do candidato da campanha'}
               </p>
             </div>
           </div>
@@ -602,7 +591,7 @@ export function ProfilePage() {
                 </>
               ) : (
                 <>
-                  <Check className="w-4 h-4 text-white" /> Salvar perfil e candidato
+                  <Check className="w-4 h-4 text-white" /> {isCoordenadorRegional ? 'Salvar perfil' : isLeader ? 'Salvar perfil de líder' : 'Salvar perfil e candidato'}
                 </>
               )}
             </button>

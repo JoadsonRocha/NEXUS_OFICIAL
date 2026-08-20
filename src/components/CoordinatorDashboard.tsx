@@ -2406,7 +2406,7 @@ export default function CoordinatorDashboard({
                   {profileData?.name || user?.displayName || user?.email?.split('@')[0] || 'Usuário'}
                 </p>
                 <p className="text-[10px] font-semibold text-[var(--text-secondary)] truncate">
-                  {(profileData?.role === 'coordenador_regional' || isRegional) ? 'Coord. Regional' : 'Coord. Geral'}
+                  {(profileData?.role === 'coordenador_regional' || isRegional || (user?.email && user.email.toLowerCase().includes('antonio')) || (profileData?.email && profileData.email.toLowerCase().includes('antonio'))) ? 'Coord. Regional' : 'Coord. Geral'}
                 </p>
               </div>
               <Settings className="w-4 h-4 text-zinc-400 group-hover:text-blue-600 shrink-0 transition-colors" />
