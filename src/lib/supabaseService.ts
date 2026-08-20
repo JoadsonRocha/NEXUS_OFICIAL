@@ -329,6 +329,37 @@ export const supabaseDataService = {
     return null;
   },
 
+  // Reactive local subscriber registry for instant 0ms updates across the entire app
+  _subscribers: new Map<string, Set<(data: any[]) => void>>(),
+  _filteredSubscribers: new Map<string, Set<{ coordinatorId: string; callback: (data: any[]) => void }>>(),
+
+  _notifySubscribers(path: string, coordinatorId?: string) {
+    // 1. Notify generic collection subscribers
+    const genericSubs = this._subscribers.get(path);
+    if (genericSubs && genericSubs.size > 0) {
+      this.getCollection(path).then(data => {
+        genericSubs.forEach(cb => {
+          try { cb(data); } catch (e) { console.warn(`Error notifying subscriber for ${path}:`, e); }
+        });
+      });
+    }
+
+    // 2. Notify filtered subscribers
+    const filteredSubs = this._filteredSubscribers.get(path);
+    if (filteredSubs && filteredSubs.size > 0) {
+      filteredSubs.forEach(sub => {
+        this.getCollectionFiltered(path, sub.coordinatorId).then(data => {
+          try { sub.callback(data); } catch (e) { console.warn(`Error notifying filtered subscriber for ${path}:`, e); }
+        });
+      });
+    }
+
+    // 3. Dispatch global browser event for cross-component reactive triggers
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('nexus_data_changed', { detail: { path, coordinatorId } }));
+    }
+  },
+
   async setDocument(path: string, id: string, data: any, merge: boolean = true) {
     const client = getSupabaseClient();
     const payload = { id, ...data };
@@ -346,6 +377,9 @@ export const supabaseDataService = {
     try {
       localStorage.setItem(getLocalKey(path, id), JSON.stringify(payload));
     } catch (e) {}
+
+    // Instant local notification (0ms UI reactivity)
+    this._notifySubscribers(path, coordinatorId);
 
     if (client) {
       try {
@@ -376,6 +410,9 @@ export const supabaseDataService = {
       localStorage.removeItem(getLocalKey(path, id));
     } catch (e) {}
 
+    // Instant local notification (0ms UI reactivity)
+    this._notifySubscribers(path);
+
     const client = getSupabaseClient();
     if (client) {
       try {
@@ -399,13 +436,23 @@ export const supabaseDataService = {
   },
 
   subscribeToCollection<T>(path: string, callback: (data: T[]) => void) {
+    // Register to in-memory instant reactive subscriber bus
+    if (!this._subscribers.has(path)) {
+      this._subscribers.set(path, new Set());
+    }
+    const pathSubs = this._subscribers.get(path)!;
+    pathSubs.add(callback as any);
+
+    // Initial load
     (this as any).getCollection(path).then(callback);
 
     const client = getSupabaseClient();
+    let channel: any = null;
+
     if (client) {
       const channelId = `pub_rec_${path}_${Math.random().toString(36).slice(2, 8)}_${Date.now()}`;
       try {
-        const channel = client
+        channel = client
           .channel(channelId)
           .on('postgres_changes', {
             event: '*',
@@ -416,28 +463,38 @@ export const supabaseDataService = {
             (this as any).getCollection(path).then(callback);
           })
           .subscribe();
-
-        return () => {
-          try {
-            client.removeChannel(channel);
-          } catch (e) {}
-        };
       } catch (err) {
         console.warn('Realtime subscription error for path:', path, err);
       }
     }
 
-    return () => {};
+    return () => {
+      pathSubs.delete(callback as any);
+      if (client && channel) {
+        try { client.removeChannel(channel); } catch (e) {}
+      }
+    };
   },
 
   subscribeToCollectionFiltered<T>(path: string, coordinatorId: string, callback: (data: T[]) => void) {
+    // Register to in-memory instant reactive filtered subscriber bus
+    if (!this._filteredSubscribers.has(path)) {
+      this._filteredSubscribers.set(path, new Set());
+    }
+    const filteredSubs = this._filteredSubscribers.get(path)!;
+    const subObj = { coordinatorId, callback: callback as any };
+    filteredSubs.add(subObj);
+
+    // Initial load
     (this as any).getCollectionFiltered(path, coordinatorId).then(callback);
 
     const client = getSupabaseClient();
+    let channel: any = null;
+
     if (client) {
       const channelId = `pub_rec_filt_${path}_${Math.random().toString(36).slice(2, 8)}_${Date.now()}`;
       try {
-        const channel = client
+        channel = client
           .channel(channelId)
           .on('postgres_changes', {
             event: '*',
@@ -448,18 +505,17 @@ export const supabaseDataService = {
             (this as any).getCollectionFiltered(path, coordinatorId).then(callback);
           })
           .subscribe();
-
-        return () => {
-          try {
-            client.removeChannel(channel);
-          } catch (e) {}
-        };
       } catch (err) {
         console.warn('Realtime filtered subscription error for path:', path, err);
       }
     }
 
-    return () => {};
+    return () => {
+      filteredSubs.delete(subObj);
+      if (client && channel) {
+        try { client.removeChannel(channel); } catch (e) {}
+      }
+    };
   },
 
   async getCollectionFiltered<T>(path: string, coordinatorId: string): Promise<T[]> {

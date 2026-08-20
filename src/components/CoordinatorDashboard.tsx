@@ -710,6 +710,19 @@ export default function CoordinatorDashboard({
       });
 
       const accessLink = `${window.location.origin}/login?email=${encodeURIComponent(newRegCoord.email)}&access_token=${btoa(tempPassword)}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}&region=${encodeURIComponent(newRegCoord.region || '')}`;
+      
+      const newCoordObj = {
+        id: coordId,
+        ...newRegCoord,
+        email: newRegCoord.email.toLowerCase(),
+        subLocations: newRegCoord.subLocations || '',
+        targetVoters: Number(newRegCoord.targetVoters) || 500,
+        tempPassword,
+        coordinatorId: coordinatorId || user?.uid || '',
+        createdAt: Date.now()
+      };
+      setRegionalCoordinators(prev => [newCoordObj, ...prev.filter(c => c.id !== coordId)]);
+
       setCreatedRegCoordLink(accessLink);
       setRegCoordStep('success');
     } catch (err: any) {
@@ -722,6 +735,7 @@ export default function CoordinatorDashboard({
   const handleDeleteRegionalCoordinator = async (id: string, email: string) => {
     if (confirm("Deseja realmente remover este Coordenador Regional?")) {
       try {
+        setRegionalCoordinators(prev => prev.filter(c => c.id !== id));
         await supabaseService.deleteDocument('regional_coordinators', id);
         if (email) {
           await supabaseService.deleteDocument('pre_registrations', email.toLowerCase());
@@ -741,12 +755,18 @@ export default function CoordinatorDashboard({
     }
     try {
       const goalId = `goal_${newGoal.category}_${newGoal.locationName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
-      await supabaseService.setDocument('goals', goalId, {
+      const goalPayload = {
+        id: goalId,
         ...newGoal,
         targetVoters: Number(newGoal.targetVoters) || 500,
         coordinatorId: coordinatorId || user?.uid || '',
         createdAt: Date.now()
-      });
+      };
+      
+      // Optimistic instant UI update (0ms)
+      setGoalsList(prev => [goalPayload, ...prev.filter(g => g.id !== goalId)]);
+      
+      await supabaseService.setDocument('goals', goalId, goalPayload);
       setNewGoal({ locationName: '', targetVoters: 1000, category: goalCategory });
       alert("Meta registrada com sucesso!");
     } catch (err: any) {
@@ -757,6 +777,8 @@ export default function CoordinatorDashboard({
   const handleDeleteGoal = async (id: string) => {
     if (confirm("Deseja excluir esta meta?")) {
       try {
+        // Optimistic instant UI update (0ms)
+        setGoalsList(prev => prev.filter(g => g.id !== id));
         await supabaseService.deleteDocument('goals', id);
       } catch (err: any) {
         alert("Erro ao excluir meta: " + err.message);
@@ -774,11 +796,15 @@ export default function CoordinatorDashboard({
     if (!editingGoal || !editingGoal.locationName) return;
     try {
       setIsProcessing(true);
-      await supabaseService.setDocument('goals', editingGoal.id, {
+      const updatedPayload = {
         ...editingGoal,
         targetVoters: Number(editingGoal.targetVoters) || 0,
         updatedAt: Date.now()
-      });
+      };
+      // Optimistic instant UI update (0ms)
+      setGoalsList(prev => prev.map(g => g.id === editingGoal.id ? { ...g, ...updatedPayload } : g));
+
+      await supabaseService.setDocument('goals', editingGoal.id, updatedPayload);
       setIsEditGoalModalOpen(false);
       setEditingGoal(null);
       alert("Meta geral atualizada com sucesso!");
@@ -799,11 +825,15 @@ export default function CoordinatorDashboard({
     if (!editingRegCoord || !editingRegCoord.name || !editingRegCoord.email) return;
     try {
       setIsProcessing(true);
-      await supabaseService.setDocument('regional_coordinators', editingRegCoord.id, {
+      const updatedCoord = {
         ...editingRegCoord,
         targetVoters: Number(editingRegCoord.targetVoters) || 0,
         updatedAt: Date.now()
-      });
+      };
+      // Optimistic instant UI update (0ms)
+      setRegionalCoordinators(prev => prev.map(c => c.id === editingRegCoord.id ? { ...c, ...updatedCoord } : c));
+
+      await supabaseService.setDocument('regional_coordinators', editingRegCoord.id, updatedCoord);
       if (editingRegCoord.email) {
         await supabaseService.setDocument('pre_registrations', editingRegCoord.email.toLowerCase(), {
           email: editingRegCoord.email.toLowerCase(),
@@ -2145,20 +2175,25 @@ export default function CoordinatorDashboard({
       const teamId = editingTeamId || newTeam.name.replace(/\s/g, '_').toLowerCase();
       const defaultPassword = 'urna' + Math.floor(1000 + Math.random() * 9000);
       
-      // 1. Criar/Atualizar a equipe no Firestore
-      await supabaseService.setDocument('teams', teamId, {
+      const teamPayload = {
+        id: teamId,
         ...newTeam,
         allocated: Number(newTeam.allocated) || 0,
         spent: Number(newTeam.spent) || 0,
         contacts: Number(newTeam.contacts) || 0,
         demands: Number(newTeam.demands) || 0,
         fuel: Number(newTeam.fuel) || 0,
-        tempPassword: isEditMode ? ((newTeam as any).tempPassword || defaultPassword) : defaultPassword, // Manter ou criar senha
+        tempPassword: isEditMode ? ((newTeam as any).tempPassword || defaultPassword) : defaultPassword,
         coordinatorId: coordinatorId || user?.uid || '',
         regionalCoordId: newTeam.regionalCoordId || (isRegional ? (user?.uid || '') : ''),
         updatedAt: Date.now(),
         createdAt: isEditMode ? ((newTeam as any).createdAt || Date.now()) : Date.now()
-      });
+      };
+      // Optimistic instant UI update (0ms)
+      setTeams(prev => [teamPayload, ...prev.filter(t => t.id !== teamId)]);
+
+      // 1. Criar/Atualizar a equipe no Firestore
+      await supabaseService.setDocument('teams', teamId, teamPayload);
 
       if (!isEditMode) {
         // 2. Criar pré-registro para o líder (apenas em criação)

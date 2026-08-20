@@ -378,23 +378,18 @@ CREATE POLICY "Aprovação de Urgência Apenas por Coordenadores" ON public.urge
   );
 
 -- 6.5 POLÍTICAS PARA CAMPAIGN_RECORDS E ESTADO CONSOLIDADO
-CREATE POLICY "Isolamento de Registros por Coordenador" ON public.campaign_records
-  FOR ALL USING (
-    auth.uid() IS NOT NULL AND (
-      coordinator_id = auth.uid()::text 
-      OR coordinator_id = public.get_my_coordinator_id()::text
-      OR public.is_admin_or_coordinator()
-    )
-  );
+DROP POLICY IF EXISTS "Isolamento de Registros por Coordenador" ON public.campaign_records;
+DROP POLICY IF EXISTS "Permite leitura e escrita publica campaign_records" ON public.campaign_records;
+DROP POLICY IF EXISTS "Acesso campaign_records" ON public.campaign_records;
 
-CREATE POLICY "Isolamento de Estado da Campanha" ON public.coordinator_campaigns
-  FOR ALL USING (
-    auth.uid() IS NOT NULL AND (
-      coordinator_id = auth.uid()::text 
-      OR coordinator_id = public.get_my_coordinator_id()::text
-      OR public.is_admin_or_coordinator()
-    )
-  );
+CREATE POLICY "Acesso campaign_records" ON public.campaign_records
+  FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Isolamento de Estado da Campanha" ON public.coordinator_campaigns;
+DROP POLICY IF EXISTS "Acesso coordinator_campaigns" ON public.coordinator_campaigns;
+
+CREATE POLICY "Acesso coordinator_campaigns" ON public.coordinator_campaigns
+  FOR ALL USING (true) WITH CHECK (true);
 
 CREATE POLICY "Acesso Autenticado a TRE Locations" ON public.tre_locations
   FOR SELECT USING (auth.uid() IS NOT NULL);
