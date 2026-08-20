@@ -38,7 +38,7 @@ interface AuthContextType {
   sessionLocked: boolean;
   login: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
-  signupWithEmail: (email: string, pass: string, role: UserRole, extraData?: any) => Promise<void>;
+  signupWithEmail: (email: string, pass: string, role: UserRole, extraData?: any) => Promise<any>;
   logout: () => Promise<void>;
   changePassword: (newPass: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -145,6 +145,9 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       metaRole = 'lider';
     } else if (preRegDoc?.role || authUser?.user_metadata?.role || urlRole) {
       metaRole = (preRegDoc?.role || authUser?.user_metadata?.role || urlRole) as UserRole;
+    } else {
+      // Padrão do sistema: Acesso direto (Google Auth ou criação de conta sem convite) é Coordenador Geral
+      metaRole = 'coordenador_geral';
     }
 
     const metaCoordId = preRegDoc?.coordinatorId || regionalCoordDoc?.coordinatorId || teamDoc?.coordinatorId || authUser?.user_metadata?.coordinatorId || urlCoordId;
@@ -169,7 +172,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
           createdAt: Date.now()
         };
       } else {
-        const determinedRole: UserRole = metaRole || (isAntonio ? 'coordenador_regional' : (isJoadson ? 'coordenador_geral' : 'lider'));
+        const determinedRole: UserRole = metaRole || (isAntonio ? 'coordenador_regional' : 'coordenador_geral');
         const determinedCoordId = (determinedRole === 'coordenador_geral') ? uid : (metaCoordId || uid);
         profile = {
           id: uid,
@@ -191,6 +194,12 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       // Auto-correct role if the user is registered as a regional coordinator but profile was erroneously saved as 'lider'
       if (targetRole && profile.role !== targetRole && !isJoadson) {
         profile.role = targetRole;
+        updated = true;
+      }
+      // Se o usuário está como 'lider' por fallback antigo, mas não tem vínculo com nenhuma equipe, promove para coordenador_geral
+      if (profile.role === 'lider' && !teamDoc && !regionalCoordDoc && !preRegDoc && !urlRole && (!profile.teamId || profile.teamId === 'null')) {
+        profile.role = 'coordenador_geral';
+        profile.coordinatorId = uid;
         updated = true;
       }
       if (targetCoordId && profile.coordinatorId !== targetCoordId && !isJoadson && profile.role !== 'coordenador_geral') {
@@ -436,21 +445,30 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signupWithEmail = async (email: string, pass: string, userRole: UserRole, extraData?: any) => {
+  const isValidUUID = (str?: string | null): boolean => 
+    Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(str).trim()));
+
+  const signupWithEmail = async (email: string, pass: string, userRole: UserRole, extraData?: any): Promise<{ needsConfirmation?: boolean }> => {
     const supabase = getSupabaseClient();
     let userId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    let needsEmailConfirmation = false;
+
+    const validCoordinatorId = isValidUUID(extraData?.coordinatorId) ? extraData.coordinatorId : null;
+    const validRegionalCoordId = isValidUUID(extraData?.regionalCoordId) ? extraData.regionalCoordId : null;
+    const validTeamId = isValidUUID(extraData?.teamId) ? extraData.teamId : null;
 
     if (supabase) {
       const { data, error } = await supabase.auth.signUp({
         email,
         password: pass,
         options: {
+          emailRedirectTo: `${window.location.origin}/login?confirmed=true`,
           data: {
             full_name: extraData?.name || email.split('@')[0],
             role: userRole,
-            coordinatorId: extraData?.coordinatorId || '',
-            regionalCoordId: extraData?.regionalCoordId || '',
-            teamId: extraData?.teamId || '',
+            coordinatorId: validCoordinatorId || '',
+            regionalCoordId: validRegionalCoordId || '',
+            teamId: validTeamId || '',
             region: extraData?.region || ''
           }
         }
@@ -458,6 +476,9 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       if (data.user) {
         userId = data.user.id;
+        if (!data.session && !data.user.confirmed_at && !data.user.email_confirmed_at) {
+          needsEmailConfirmation = true;
+        }
       }
     }
 
@@ -466,6 +487,9 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       uid: userId,
       email: email.toLowerCase(),
       role: userRole,
+      coordinatorId: validCoordinatorId || extraData?.coordinatorId || null,
+      regionalCoordId: validRegionalCoordId || extraData?.regionalCoordId || null,
+      teamId: validTeamId || extraData?.teamId || null,
       createdAt: Date.now(),
       ...extraData
     };
@@ -474,14 +498,14 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     await supabaseDataService.setDocument('users', userId, profileData, true);
 
     // 2. Sincronizar na tabela física 'profiles' relacional no Supabase para garantir consistência de RLS
-    if (supabase && userId) {
+    if (supabase && userId && isValidUUID(userId)) {
       try {
         await supabase.from('profiles').update({
           full_name: extraData?.name || email.split('@')[0],
           role: userRole,
           region: extraData?.region || null,
-          coordinator_id: extraData?.coordinatorId ? extraData.coordinatorId : null,
-          team_id: extraData?.teamId ? extraData.teamId : null,
+          coordinator_id: validCoordinatorId,
+          team_id: validTeamId,
           force_password_change: extraData?.forcePasswordChange !== undefined ? extraData.forcePasswordChange : false
         }).eq('id', userId);
       } catch (err) {
@@ -489,8 +513,12 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    localStorage.setItem('nexus_auth_user', JSON.stringify(profileData));
-    await syncUserProfile(profileData);
+    if (!needsEmailConfirmation) {
+      localStorage.setItem('nexus_auth_user', JSON.stringify(profileData));
+      await syncUserProfile(profileData);
+    }
+
+    return { needsConfirmation: needsEmailConfirmation };
   };
 
   const logout = async () => {
