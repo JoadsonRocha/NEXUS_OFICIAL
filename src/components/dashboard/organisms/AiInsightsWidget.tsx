@@ -25,17 +25,22 @@ export const AiInsightsWidget: React.FC<AiInsightsWidgetProps> = ({ dashboardDat
     }
   };
 
-  // Helper to format basic markdown to HTML for display
+  // Helper to format basic markdown to HTML for display securely
   const formatMarkdown = (text: string) => {
-    // Bold
-    let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    // Italic
+    // 1. Sanitize raw HTML tags to prevent XSS
+    let sanitized = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    // 2. Bold
+    let formatted = sanitized.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // 3. Italic
     formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    // Bullet points (basic handling)
+    // 4. Bullet points
     formatted = formatted.replace(/^- (.*)$/gm, '<li>$1</li>');
     formatted = formatted.replace(/<li>(.*?)<\/li>/gs, '<ul class="list-disc pl-5 my-2">$&</ul>');
-    // Remove consecutive <ul> tags by a rough hack, or just let CSS handle it.
-    // Line breaks
+    // 5. Line breaks
     formatted = formatted.replace(/\n/g, '<br/>');
     return formatted;
   };
