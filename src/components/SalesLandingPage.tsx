@@ -32,7 +32,8 @@ import {
   Share2,
   DollarSign,
   Radio,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Headphones
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 import { ASAAS_PLAN_LINKS, COMMERCIAL_WHATSAPP_NUMBER } from '../config/asaasConfig';
