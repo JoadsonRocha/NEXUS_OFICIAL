@@ -2,14 +2,17 @@
 // Cole aqui os links de pagamento ou assinaturas criados no painel do Asaas.
 
 export const ASAAS_PLAN_LINKS = {
-  // Plano Start Tático - R$ 379/mês (Até 2.500 eleitores)
+  // Plano Municipal Tático - R$ 397,97/mês (Até 5.000 eleitores)
   startTatico: "https://www.asaas.com/c/tq5w0dm3942yoqvu",
+  municipal: "https://www.asaas.com/c/tq5w0dm3942yoqvu",
 
-  // Plano Comando Tático - R$ 679/mês (Até 10.000 eleitores)
+  // Plano Estadual Estratégico - R$ 697,97/mês (Até 30.000 eleitores)
   comandoTatico: "https://www.asaas.com/c/c2kiytos2yjni8rb",
+  estadual: "https://www.asaas.com/c/c2kiytos2yjni8rb",
 
-  // Plano Domínio Total - R$ 850/mês (Ilimitado)
+  // Plano Nacional Soberano - R$ 1.497,97/mês (Ilimitado)
   dominioTotal: "https://www.asaas.com/c/gr802ymybtgddcp3",
+  nacional: "https://www.asaas.com/c/gr802ymybtgddcp3",
 };
 
 // WhatsApp para suporte comercial / fechamento customizado

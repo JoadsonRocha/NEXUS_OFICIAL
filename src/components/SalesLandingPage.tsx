@@ -430,29 +430,32 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
             
-            {/* Plano 0: Grátis */}
+            {/* Plano 0: Degustação 14 Dias Grátis */}
             <div className="p-6 rounded-2xl bg-[#0f172a] border border-emerald-500/40 flex flex-col justify-between space-y-6 shadow-md">
               <div className="space-y-4">
-                <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Teste Prático</span>
-                <h3 className="text-xl font-black text-slate-100">Plano Grátis</h3>
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">14 Dias Grátis</span>
+                <h3 className="text-xl font-black text-slate-100">Degustação de Campo</h3>
                 <div className="text-3xl font-black text-emerald-400">
-                  R$ 0 <span className="text-xs text-slate-400 font-normal">/sem custo</span>
+                  R$ 0 <span className="text-xs text-slate-400 font-normal">/14 dias de teste</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-800/40 text-[11px] text-emerald-200 font-medium">
-                  Ideal para você e seu coordenador testarem o painel e cadastrarem a primeira equipe.
+                  Teste o sistema completo na rua com sua coordenação e líderes antes de investir.
                 </div>
                 <ul className="space-y-2.5 text-xs text-slate-300">
                   <li className="flex items-center gap-2 font-bold text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 7 Eleitores Cadastrados
+                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 100 Eleitores Cadastrados
                   </li>
                   <li className="flex items-center gap-2 font-bold text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 2 Líderes de Equipe
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 5 Líderes de Equipe
                   </li>
                   <li className="flex items-center gap-2 font-bold text-slate-200">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 2 Coordenadores Regionais
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Acesso ao Mapa e Metas
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Mapa de Calor & Metas
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> WhatsApp wa.me sem taxas
                   </li>
                 </ul>
               </div>
@@ -462,125 +465,134 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                 onClick={onAccessSystem}
                 className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs text-center block transition-all active:scale-95 cursor-pointer shadow-lg shadow-emerald-600/20"
               >
-                Começar no Plano Grátis
+                Testar 14 Dias Grátis
               </button>
             </div>
             
-            {/* Plano 1: Start Tático */}
+            {/* Plano 1: Municipal Tático */}
             <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 flex flex-col justify-between space-y-6 shadow-md">
               <div className="space-y-4">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Até 2.500 Eleitores</span>
-                <h3 className="text-xl font-black text-slate-100">Plano Start</h3>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Vereador & Prefeituras</span>
+                <h3 className="text-xl font-black text-slate-100">Plano Municipal</h3>
                 <div className="text-3xl font-black text-slate-100">
-                  R$ 379 <span className="text-xs text-slate-400 font-normal">/mês</span>
+                  R$ 397,97 <span className="text-xs text-slate-400 font-normal">/mês</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#090d16] border border-white/10 text-[11px] text-slate-300 font-medium">
-                  Excelente para pré-campanhas de vereador e mobilizações locais em fase inicial.
+                  Excelente para campanhas municipais de vereador, bairros e cidades do interior.
                 </div>
                 <ul className="space-y-2.5 text-xs text-slate-300">
                   <li className="flex items-center gap-2 font-bold text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 2.500 Eleitores
+                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 5.000 Eleitores Cadastrados
                   </li>
                   <li className="flex items-center gap-2 font-bold text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 25 Líderes de Bairro
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 50 Líderes de Equipe
+                  </li>
+                  <li className="flex items-center gap-2 font-bold text-slate-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 10 Coordenadores Regionais
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Mensagens WhatsApp wa.me grátis
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Metas por Bairro & Demandas
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Gestão de demandas da comunidade
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Disparo WhatsApp wa.me grátis
                   </li>
                 </ul>
               </div>
 
               <a
-                href={ASAAS_PLAN_LINKS.startTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Start%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.startTatico}
+                href={ASAAS_PLAN_LINKS.startTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Municipal%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.startTatico}
                 target="_blank"
                 rel="noreferrer"
-                onClick={() => trackAdsConversion(379)}
+                onClick={() => trackAdsConversion(397.97)}
                 className="w-full py-3 rounded-xl bg-[#1e293b] hover:bg-slate-700 text-slate-100 font-bold text-xs text-center block transition-all active:scale-95 border border-white/10"
               >
-                Contratar Plano Start
+                Contratar Plano Municipal
               </a>
             </div>
 
-            {/* Plano 2: Comando Tático */}
+            {/* Plano 2: Estadual Estratégico (Destaque) */}
             <div className="p-6 rounded-2xl bg-gradient-to-b from-blue-900/40 to-[#0f172a] border-2 border-blue-500 relative flex flex-col justify-between space-y-6 shadow-2xl shadow-blue-600/20">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-md">
                 Mais Escolhido
               </div>
 
               <div className="space-y-4 pt-2">
-                <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Até 10.000 Eleitores</span>
-                <h3 className="text-xl font-black text-slate-100">Plano Comando</h3>
+                <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Dep. Estadual & Capitais</span>
+                <h3 className="text-xl font-black text-slate-100">Plano Estadual</h3>
                 <div className="text-3xl font-black text-slate-100">
-                  R$ 679 <span className="text-xs text-slate-400 font-normal">/mês</span>
+                  R$ 697,97 <span className="text-xs text-slate-400 font-normal">/mês</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-blue-950/40 border border-blue-800/50 text-[11px] text-blue-200 font-medium">
-                  Estrutura robusta para campanhas com presença forte e muitos líderes em campo.
+                  Estrutura de alta capacidade para campanhas estaduais com polos em vários municípios.
                 </div>
                 <ul className="space-y-2.5 text-xs text-slate-300">
                   <li className="flex items-center gap-2 font-bold text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 10.000 Eleitores
+                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 30.000 Eleitores Cadastrados
                   </li>
                   <li className="flex items-center gap-2 font-bold text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 100 Líderes de Equipe
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 250 Líderes de Equipe
+                  </li>
+                  <li className="flex items-center gap-2 font-bold text-slate-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 50 Coordenadores Regionais
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Mapa de calor e análise por seção
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Cruzamento Histórico do TRE
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Suporte com consultor dedicado
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Gestão de Combustível & Logística
                   </li>
                 </ul>
               </div>
 
               <a
-                href={ASAAS_PLAN_LINKS.comandoTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Comando%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.comandoTatico}
+                href={ASAAS_PLAN_LINKS.comandoTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Estadual%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.comandoTatico}
                 target="_blank"
                 rel="noreferrer"
-                onClick={() => trackAdsConversion(679)}
+                onClick={() => trackAdsConversion(697.97)}
                 className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/30 transition-all active:scale-95"
               >
-                Garantir Licença Comando
+                Garantir Plano Estadual
               </a>
             </div>
 
-            {/* Plano 3: Domínio Total */}
-            <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 flex flex-col justify-between space-y-6 shadow-md">
+            {/* Plano 3: Nacional Soberano */}
+            <div className="p-6 rounded-2xl bg-[#0f172a] border border-amber-500/40 flex flex-col justify-between space-y-6 shadow-md">
               <div className="space-y-4">
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Capacidade Total</span>
-                <h3 className="text-xl font-black text-slate-100">Plano Ilimitado</h3>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Dep. Federal & Majoritárias</span>
+                <h3 className="text-xl font-black text-slate-100">Plano Nacional</h3>
                 <div className="text-3xl font-black text-white">
-                  R$ 850 <span className="text-xs text-slate-400 font-normal">/mês</span>
+                  R$ 1.497,97 <span className="text-xs text-slate-400 font-normal">/mês</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-amber-950/30 border border-amber-800/40 text-[11px] text-amber-200 font-medium">
-                  Para grandes campanhas majoritárias, prefeituras, deputados e grandes coligações.
+                  Para operações de grande porte, chapas majoritárias, federais e partidos.
                 </div>
                 <ul className="space-y-2.5 text-xs text-slate-300">
                   <li className="flex items-center gap-2 font-bold text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Eleitores Ilimitados
+                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Eleitores Cadastrados Ilimitados
                   </li>
                   <li className="flex items-center gap-2 font-bold text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Líderes e Equipes Ilimitados
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Líderes e Regionais Ilimitados
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Todas as funcionalidades liberadas
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Relatórios SPCE para o TSE
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Relatórios contábeis para o TSE
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Servidor Dedicado & Alta Performance
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Consultor Estratégico Exclusivo
                   </li>
                 </ul>
               </div>
 
               <a
-                href={ASAAS_PLAN_LINKS.dominioTotal.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Dom%C3%ADnio%20Total%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.dominioTotal}
+                href={ASAAS_PLAN_LINKS.dominioTotal.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Nacional%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.dominioTotal}
                 target="_blank"
                 rel="noreferrer"
-                onClick={() => trackAdsConversion(850)}
-                className="w-full py-3 rounded-xl bg-[#1e293b] hover:bg-slate-700 text-slate-100 font-bold text-xs text-center block transition-all active:scale-95 border border-white/10"
+                onClick={() => trackAdsConversion(1497.97)}
+                className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs text-center block transition-all active:scale-95 shadow-lg shadow-amber-600/20"
               >
-                Contratar Plano Ilimitado
+                Contratar Plano Nacional
               </a>
             </div>
 
