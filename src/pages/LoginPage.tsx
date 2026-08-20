@@ -198,7 +198,7 @@ export function LoginPage() {
         
         const shouldForce = false;
         
-        await signupWithEmail(email, password, effectiveRole, {
+        const result = await signupWithEmail(email, password, effectiveRole, {
           name: preRegDoc?.name || email.split('@')[0],
           phone: preRegDoc?.phone || '',
           address: preRegDoc?.address || '',
@@ -209,6 +209,12 @@ export function LoginPage() {
           regionalCoordId: effectiveRegionalCoordId,
           forcePasswordChange: shouldForce
         });
+
+        if (result?.needsConfirmation) {
+          setIsRegistering(false);
+          setAuthInfo('Conta criada com sucesso! Enviamos um e-mail com o link de ativação. Por favor, confirme seu e-mail antes de fazer o login.');
+          showToast('Conta criada! Verifique seu e-mail para confirmar seu acesso.', 'info');
+        }
       } else {
         try {
           await loginWithEmail(email, password);
