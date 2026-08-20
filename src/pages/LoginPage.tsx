@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Eye, EyeOff, Lock, Mail, ArrowRight } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ShieldCheck, Eye, EyeOff, Lock, Mail, ArrowRight, KeyRound, CheckCircle2, X, RefreshCw, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/SupabaseProvider';
 import { supabaseService } from '../lib/supabaseService';
 import { validateGeneralCoordinatorRegistration, triggerUpgradeRedirect } from '../lib/planService';
+import { showToast } from '../components/GlobalToastHost';
 import logoImg from '../assets/logo.png';
 
 const sanitizeId = (id?: string | null): string => (id ? String(id).trim() : '');
@@ -39,6 +40,25 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Estados para o Modal de Recuperação de Senha
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotError, setForgotError] = useState('');
+  const [cooldownTimer, setCooldownTimer] = useState(0);
+
+  // Timer de resfriamento para reenvio de e-mail (evita spam e rate limit)
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (cooldownTimer > 0) {
+      interval = setInterval(() => {
+        setCooldownTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [cooldownTimer]);
+
   // Handle URL Params for Easy Access and store them safely
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -49,6 +69,11 @@ export function LoginPage() {
     const regCoordParam = params.get('regionalCoordId');
     const teamParam = params.get('teamId');
     const regionParam = params.get('region');
+    const confirmedParam = params.get('confirmed') || params.get('email_confirmed');
+
+    if (confirmedParam) {
+      showToast('E-mail confirmado com sucesso! Faça login para continuar.', 'success');
+    }
 
     const inviteData = {
       role: roleParam,
@@ -63,6 +88,7 @@ export function LoginPage() {
 
     if (emailParam) {
       setEmail(emailParam);
+      setForgotEmail(emailParam);
     }
 
     if (roleParam && (roleParam === 'coordenador_regional' || roleParam === 'lider' || roleParam === 'coordenador_geral')) {
@@ -170,8 +196,6 @@ export function LoginPage() {
           }
         }
         
-        // Se o usuário está se registrando manualmente e criando sua própria senha,
-        // não faz sentido forçá-lo a redefinir a senha logo em seguida.
         const shouldForce = false;
         
         await signupWithEmail(email, password, effectiveRole, {
@@ -191,7 +215,7 @@ export function LoginPage() {
         } catch (err: any) {
           const errStr = (err.message || '').toLowerCase();
           const errCode = (err.code || '').toLowerCase();
-          // Se falhou o login padrão (ex: conta ainda não existe no auth do Supabase), tentar criar/ativar conta via credencial temporária
+          
           const isCredentialIssue = errCode.includes('user-not-found') || 
                                    errCode.includes('invalid-credential') || 
                                    errStr.includes('invalid login credentials') ||
@@ -232,19 +256,55 @@ export function LoginPage() {
       const errorMsg = err.message || '';
       const errorCode = err.code || '';
 
-      if (errorCode === 'auth/email-already-in-use' || errorMsg.includes('email-already-in-use')) {
+      if (errorCode === 'auth/email-already-in-use' || errorMsg.includes('email-already-in-use') || errorMsg.includes('User already registered')) {
         setAuthError('Este e-mail já possui uma conta ativa. Faça o login usando sua senha cadastrada.');
       } else if (errorCode === 'auth/invalid-credential' || errorMsg.includes('invalid-credential') || errorMsg.includes('INVALID_LOGIN_CREDENTIALS')) {
-        setAuthError('Chave de acesso incorreta. Verifique os dados digitados ou a senha temporária.');
+        setAuthError('Chave de acesso incorreta. Verifique os dados digitados ou clique em "Esqueceu a senha?".');
       } else if (errorCode === 'auth/user-not-found' || errorMsg.includes('user-not-found')) {
         setAuthError('Operador não encontrado. Certifique-se de que seu e-mail foi cadastrado pela coordenação.');
-      } else if (errorCode === 'auth/too-many-requests' || errorMsg.includes('too-many-requests')) {
-        setAuthError('Muitas tentativas incorretas. Aguarde alguns instantes ou redefina sua senha.');
+      } else if (errorCode === 'auth/too-many-requests' || errorMsg.includes('too-many-requests') || errorMsg.includes('rate limit')) {
+        setAuthError('Muitas tentativas em pouco tempo. Aguarde alguns instantes antes de tentar novamente.');
+      } else if (errorMsg.includes('Email not confirmed')) {
+        setAuthError('Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de validação.');
       } else {
         setAuthError(errorMsg || 'Erro na autenticação. Verifique suas credenciais.');
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSendResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError('');
+
+    const targetEmail = (forgotEmail || email).trim().toLowerCase();
+    if (!targetEmail || !targetEmail.includes('@')) {
+      setForgotError('Por favor, informe um endereço de e-mail válido.');
+      return;
+    }
+
+    if (cooldownTimer > 0) return;
+
+    setForgotLoading(true);
+
+    try {
+      await resetPassword(targetEmail);
+      setForgotSent(true);
+      setCooldownTimer(60);
+      showToast(`Link de recuperação enviado para ${targetEmail}`, 'success');
+    } catch (err: any) {
+      console.error("Reset password error:", err);
+      const msg = err.message || '';
+      if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
+        setForgotError('Limite de envios atingido para este e-mail. Por favor, aguarde alguns minutos antes de tentar novamente.');
+      } else if (msg.includes('user not found') || msg.includes('User not found')) {
+        setForgotError('Nenhum usuário cadastrado com este e-mail.');
+      } else {
+        setForgotError(msg || 'Erro ao enviar o e-mail de recuperação. Tente novamente.');
+      }
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -337,7 +397,10 @@ export function LoginPage() {
               <input 
                 type="email" 
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (!forgotEmail) setForgotEmail(e.target.value);
+                }}
                 required
                 className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] pl-10 pr-3.5 py-2.5 sm:py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-semibold text-xs sm:text-sm placeholder:[var(--text-secondary)] placeholder:opacity-40"
                 placeholder="nome@campanha.com"
@@ -354,21 +417,12 @@ export function LoginPage() {
               {!isRegistering && (
                 <button
                   type="button"
-                  onClick={async () => {
-                    if (!email) {
-                      alert("Por favor, digite o seu e-mail no campo acima antes de solicitar a redefinição.");
-                      return;
-                    }
-                    if (confirm(`Deseja enviar um e-mail de redefinição de senha para ${email}?`)) {
-                      try {
-                        await resetPassword(email);
-                        alert(`E-mail de redefinição enviado com sucesso para ${email}! Verifique sua caixa de entrada.`);
-                      } catch (err: any) {
-                        alert(`Erro ao enviar e-mail: ${err.message || err}`);
-                      }
-                    }
+                  onClick={() => {
+                    setForgotEmail(email);
+                    setForgotError('');
+                    setShowForgotModal(true);
                   }}
-                  className="text-[10px] font-bold text-blue-600 hover:text-blue-500 transition-colors focus:outline-none"
+                  className="text-[10px] font-bold text-blue-600 hover:text-blue-500 transition-colors focus:outline-none cursor-pointer"
                 >
                   Esqueceu a senha?
                 </button>
@@ -389,7 +443,7 @@ export function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-blue-600 transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-blue-600 transition-colors p-1 cursor-pointer"
                 aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -417,7 +471,7 @@ export function LoginPage() {
               {showDomainGuide && (
                 <div className="bg-blue-600/5 border border-blue-600/20 rounded-xl p-3 text-left space-y-2 text-xs">
                   <h4 className="font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider text-[10px]">
-                    Configuração de Domínio no Firebase:
+                    Configuração de Domínio no Supabase:
                   </h4>
                   <div className="flex items-center justify-between bg-[var(--bg-tertiary)] border border-[var(--border-color)] p-2 rounded-lg gap-2">
                     <code className="text-[10px] font-mono select-all truncate text-[var(--text-primary)]">{window.location.hostname}</code>
@@ -428,7 +482,7 @@ export function LoginPage() {
                         setCopiedDomain(window.location.hostname);
                         setTimeout(() => setCopiedDomain(null), 2000);
                       }}
-                      className="px-2.5 py-1 text-[9px] font-bold bg-blue-600 text-white rounded-md hover:bg-blue-500 active:scale-95 transition-all shrink-0"
+                      className="px-2.5 py-1 text-[9px] font-bold bg-blue-600 text-white rounded-md hover:bg-blue-500 active:scale-95 transition-all shrink-0 cursor-pointer"
                     >
                       {copiedDomain === window.location.hostname ? 'Copiado!' : 'Copiar'}
                     </button>
@@ -519,6 +573,150 @@ export function LoginPage() {
         </div>
       </motion.div>
       
+      {/* Modal Moderno de Recuperação de Senha */}
+      <AnimatePresence>
+        {showForgotModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowForgotModal(false)}
+              className="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm"
+            />
+
+            {/* Modal Card */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-[400px] bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-7 shadow-2xl shadow-blue-950/20 z-10"
+            >
+              {/* Close Button */}
+              <button 
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 rounded-lg transition-colors cursor-pointer"
+                aria-label="Fechar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Modal Header */}
+              <div className="text-center space-y-2 mb-5">
+                <div className="w-12 h-12 bg-blue-600/10 border border-blue-600/20 text-blue-600 rounded-full flex items-center justify-center mx-auto">
+                  <KeyRound className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-black text-[var(--text-primary)] tracking-tight">
+                  Recuperação de Senha
+                </h3>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  Digite seu e-mail cadastrado e enviaremos um link seguro para redefinir sua chave de acesso.
+                </p>
+              </div>
+
+              {/* Success View */}
+              {forgotSent ? (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="space-y-4 text-center py-2"
+                >
+                  <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-left space-y-2">
+                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>E-mail enviado com sucesso!</span>
+                    </div>
+                    <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                      Enviamos um link de recuperação para <strong className="text-[var(--text-primary)]">{forgotEmail}</strong>.
+                    </p>
+                    <div className="pt-1 text-[10px] text-[var(--text-secondary)] opacity-80 space-y-0.5 border-t border-emerald-500/20">
+                      <p>💡 Dica: Verifique também a pasta de <strong>Spam / Lixo Eletrônico</strong>.</p>
+                      <p>⏱️ O link possui validade temporária por segurança.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      disabled={cooldownTimer > 0 || forgotLoading}
+                      onClick={handleSendResetPassword}
+                      className="w-full bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] disabled:opacity-50 text-[var(--text-primary)] py-2.5 px-4 rounded-xl font-bold text-xs border border-[var(--border-color)] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${forgotLoading ? 'animate-spin' : ''}`} />
+                      <span>{cooldownTimer > 0 ? `Reenviar em ${cooldownTimer}s` : 'Reenviar E-mail'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotModal(false)}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                    >
+                      Concluir e Voltar ao Login
+                    </button>
+                  </div>
+                </motion.div>
+              ) : (
+                /* Form View */
+                <form onSubmit={handleSendResetPassword} className="space-y-4 text-left">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
+                      E-mail Cadastrado
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-secondary)] opacity-50">
+                        <Mail className="w-4 h-4" />
+                      </div>
+                      <input 
+                        type="email" 
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        required
+                        className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-[var(--text-primary)] pl-10 pr-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-semibold text-xs sm:text-sm placeholder:[var(--text-secondary)] placeholder:opacity-40"
+                        placeholder="seuemail@exemplo.com"
+                      />
+                    </div>
+                  </div>
+
+                  {forgotError && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-semibold flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{forgotError}</span>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotModal(false)}
+                      className="w-1/3 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] text-[var(--text-secondary)] py-2.5 px-3 rounded-xl font-bold text-xs border border-[var(--border-color)] transition-colors cursor-pointer text-center"
+                    >
+                      Cancelar
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={forgotLoading || !forgotEmail}
+                      className="w-2/3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 text-white py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      {forgotLoading ? (
+                        <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <span>Enviar Instruções</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Clean Footer Branding */}
       <p className="mt-5 text-[11px] font-medium text-[var(--text-secondary)] opacity-50 tracking-wider">
         Nexus Política • Sistema de Inteligência Eleitoral
