@@ -161,10 +161,18 @@ export function LoginPage() {
       }
 
       // Definir o papel garantido
-      let effectiveRole = preRegDoc?.role || urlRole || userRole;
+      let effectiveRole = preRegDoc?.role || urlRole || userRole || 'coordenador_geral';
       if (urlRole === 'coordenador_regional' || preRegDoc?.role === 'coordenador_regional') {
         effectiveRole = 'coordenador_regional';
+      } else if (urlRole === 'lider' || preRegDoc?.role === 'lider') {
+        effectiveRole = 'lider';
       }
+
+      const sanitizeId = (id: any) => (!id || id === 'null' || id === 'undefined' || String(id).trim() === '') ? undefined : id;
+      const effectiveCoordinatorId = sanitizeId(preRegDoc?.coordinatorId) || sanitizeId(urlCoordId) || sanitizeId(inviteParams.coordinatorId) || undefined;
+      const effectiveRegionalCoordId = sanitizeId(preRegDoc?.regionalCoordId) || sanitizeId(urlRegionalCoordId) || sanitizeId(inviteParams.regionalCoordId) || undefined;
+      const effectiveTeamId = sanitizeId(preRegDoc?.teamId) || sanitizeId(urlTeamId) || sanitizeId(inviteParams.teamId) || undefined;
+      const effectiveRegion = preRegDoc?.region || urlRegion || inviteParams.region || '';
 
       if (isRegistering) {
         if (!acceptedLgpd) {
@@ -179,13 +187,6 @@ export function LoginPage() {
           setIsLoading(false);
           return;
         }
-
-        const sanitizeId = (id: any) => (!id || id === 'null' || id === 'undefined' || String(id).trim() === '') ? undefined : id;
-        
-        const effectiveCoordinatorId = sanitizeId(preRegDoc?.coordinatorId) || sanitizeId(urlCoordId) || undefined;
-        const effectiveRegionalCoordId = sanitizeId(preRegDoc?.regionalCoordId) || sanitizeId(urlRegionalCoordId) || undefined;
-        const effectiveTeamId = sanitizeId(preRegDoc?.teamId) || sanitizeId(urlTeamId) || undefined;
-        const effectiveRegion = preRegDoc?.region || urlRegion || '';
 
         if (effectiveRole === 'coordenador_geral') {
           const validation = await validateGeneralCoordinatorRegistration();
@@ -229,29 +230,22 @@ export function LoginPage() {
                                    errStr.includes('user not found');
 
           if (isCredentialIssue) {
-            if (preRegDoc || effectiveRole === 'coordenador_geral') {
-              setAuthInfo('Primeiro acesso detectado. Estamos criando seu ambiente seguro, aguarde...');
-              
-              const effectiveCoordinatorId = sanitizeId(preRegDoc?.coordinatorId) || sanitizeId(urlCoordId) || undefined;
-              const effectiveRegionalCoordId = sanitizeId(preRegDoc?.regionalCoordId) || sanitizeId(urlRegionalCoordId) || undefined;
-              const effectiveTeamId = sanitizeId(preRegDoc?.teamId) || sanitizeId(urlTeamId) || undefined;
-              const effectiveRegion = preRegDoc?.region || urlRegion || '';
-              const shouldForce = preRegDoc?.forcePasswordChange !== false && !preRegDoc?.passwordChangedAt;
+            // Auto provision account for first-time login (Regional Coordinator, Team Leader, Coordinator Geral)
+            setAuthInfo('Primeiro acesso detectado. Estamos configurando seu ambiente seguro, aguarde...');
+            
+            const shouldForce = preRegDoc?.forcePasswordChange !== false && !preRegDoc?.passwordChangedAt;
 
-              await signupWithEmail(email, password, effectiveRole, {
-                name: preRegDoc?.name || email.split('@')[0],
-                phone: preRegDoc?.phone || '',
-                address: preRegDoc?.address || '',
-                region: effectiveRegion,
-                teamName: preRegDoc?.teamName || '',
-                teamId: effectiveTeamId,
-                coordinatorId: effectiveCoordinatorId,
-                regionalCoordId: effectiveRegionalCoordId,
-                forcePasswordChange: shouldForce
-              });
-            } else {
-              throw err;
-            }
+            await signupWithEmail(email, password, effectiveRole, {
+              name: preRegDoc?.name || email.split('@')[0],
+              phone: preRegDoc?.phone || '',
+              address: preRegDoc?.address || '',
+              region: effectiveRegion,
+              teamName: preRegDoc?.teamName || '',
+              teamId: effectiveTeamId,
+              coordinatorId: effectiveCoordinatorId,
+              regionalCoordId: effectiveRegionalCoordId,
+              forcePasswordChange: shouldForce
+            });
           } else {
             throw err;
           }
@@ -262,10 +256,10 @@ export function LoginPage() {
       const errorMsg = err.message || '';
       const errorCode = err.code || '';
 
-      if (errorCode === 'auth/email-already-in-use' || errorMsg.includes('email-already-in-use') || errorMsg.includes('User already registered')) {
-        setAuthError('Este e-mail já possui uma conta ativa. Faça o login usando sua senha cadastrada.');
-      } else if (errorCode === 'auth/invalid-credential' || errorMsg.includes('invalid-credential') || errorMsg.includes('INVALID_LOGIN_CREDENTIALS')) {
-        setAuthError('Chave de acesso incorreta. Verifique os dados digitados ou clique em "Esqueceu a senha?".');
+      if (errorCode === 'auth/email-already-in-use' || errorMsg.includes('email-already-in-use') || errorMsg.includes('User already registered') || errorMsg.includes('user_already_exists')) {
+        setAuthError('Este e-mail já possui uma conta ativa. A senha informada está incorreta. Verifique suas credenciais ou clique em "Esqueceu a senha?".');
+      } else if (errorCode === 'auth/invalid-credential' || errorMsg.includes('invalid-credential') || errorMsg.includes('INVALID_LOGIN_CREDENTIALS') || errorMsg.includes('invalid login credentials')) {
+        setAuthError('Chave de acesso ou senha incorreta. Verifique os dados digitados ou clique em "Esqueceu a senha?".');
       } else if (errorCode === 'auth/user-not-found' || errorMsg.includes('user-not-found')) {
         setAuthError('Operador não encontrado. Certifique-se de que seu e-mail foi cadastrado pela coordenação.');
       } else if (errorCode === 'auth/too-many-requests' || errorMsg.includes('too-many-requests') || errorMsg.includes('rate limit')) {

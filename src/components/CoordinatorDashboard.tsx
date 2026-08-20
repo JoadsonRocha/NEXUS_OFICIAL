@@ -709,7 +709,7 @@ export default function CoordinatorDashboard({
         createdAt: Date.now()
       });
 
-      const accessLink = `${window.location.origin}/login?email=${encodeURIComponent(newRegCoord.email)}&access_token=${btoa(tempPassword)}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}`;
+      const accessLink = `${window.location.origin}/login?email=${encodeURIComponent(newRegCoord.email)}&access_token=${btoa(tempPassword)}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}&region=${encodeURIComponent(newRegCoord.region || '')}`;
       setCreatedRegCoordLink(accessLink);
       setRegCoordStep('success');
     } catch (err: any) {
@@ -2177,7 +2177,7 @@ export default function CoordinatorDashboard({
           createdAt: Date.now()
         });
         
-        const accessLink = `${window.location.origin}/login?email=${encodeURIComponent(newTeam.leaderEmail)}&access_token=${btoa(defaultPassword)}&role=lider&coordinatorId=${coordinatorId || user?.uid || ''}&regionalCoordId=${newTeam.regionalCoordId || (isRegional ? (user?.uid || '') : '')}&teamId=${teamId}`;
+        const accessLink = `${window.location.origin}/login?email=${encodeURIComponent(newTeam.leaderEmail)}&access_token=${btoa(defaultPassword)}&role=lider&coordinatorId=${coordinatorId || user?.uid || ''}&regionalCoordId=${newTeam.regionalCoordId || (isRegional ? (user?.uid || '') : '')}&teamId=${teamId}&region=${encodeURIComponent(newTeam.location || '')}`;
         setCreatedTeamLink(accessLink);
         setTeamCreationStep('success');
       } else {
@@ -2196,7 +2196,7 @@ export default function CoordinatorDashboard({
   const handleCopyAccessLink = (team: any) => {
     const email = team.leaderEmail;
     const pass = team.tempPassword || 'urna1234'; 
-    const link = `${window.location.origin}/login?email=${encodeURIComponent(email)}&access_token=${btoa(pass)}&role=lider&coordinatorId=${coordinatorId || user?.uid || ''}&regionalCoordId=${team.regionalCoordId || ''}&teamId=${team.id}`;
+    const link = `${window.location.origin}/login?email=${encodeURIComponent(email)}&access_token=${btoa(pass)}&role=lider&coordinatorId=${coordinatorId || user?.uid || ''}&regionalCoordId=${team.regionalCoordId || ''}&teamId=${team.id}&region=${encodeURIComponent(team.location || '')}`;
     navigator.clipboard.writeText(link);
     alert(`Link de acesso copiado para ${team.leader}!\nEnvie via WhatsApp.`);
   };
@@ -3623,7 +3623,7 @@ export default function CoordinatorDashboard({
                 {/* List of Regional Coordinators */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {regionalCoordinators.map(coord => {
-                    const link = `${window.location.origin}/login?email=${encodeURIComponent(coord.email)}&access_token=${btoa(coord.tempPassword || '123456')}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}`;
+                    const link = `${window.location.origin}/login?email=${encodeURIComponent(coord.email)}&access_token=${btoa(coord.tempPassword || '123456')}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}&region=${encodeURIComponent(coord.region || '')}`;
                     return (
                       <div key={coord.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl relative group hover:border-blue-500/50 transition-all flex flex-col justify-between">
                         <div>

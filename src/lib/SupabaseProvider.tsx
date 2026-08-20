@@ -129,11 +129,12 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     }
 
     const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const urlRole = (searchParams?.get('role') || (pendingInvite?.email?.toLowerCase() === email ? pendingInvite?.role : null)) as UserRole | null;
-    const urlCoordId = searchParams?.get('coordinatorId') || pendingInvite?.coordinatorId;
-    const urlRegionalCoordId = searchParams?.get('regionalCoordId') || pendingInvite?.regionalCoordId;
-    const urlRegion = searchParams?.get('region') || pendingInvite?.region || regionalCoordDoc?.region;
-    const urlTeamId = searchParams?.get('teamId') || pendingInvite?.teamId || teamDoc?.id;
+    const isInviteForMe = !pendingInvite?.email || pendingInvite?.email?.toLowerCase() === email;
+    const urlRole = (searchParams?.get('role') || (isInviteForMe ? pendingInvite?.role : null)) as UserRole | null;
+    const urlCoordId = searchParams?.get('coordinatorId') || (isInviteForMe ? pendingInvite?.coordinatorId : null);
+    const urlRegionalCoordId = searchParams?.get('regionalCoordId') || (isInviteForMe ? pendingInvite?.regionalCoordId : null);
+    const urlRegion = searchParams?.get('region') || (isInviteForMe ? pendingInvite?.region : null) || regionalCoordDoc?.region;
+    const urlTeamId = searchParams?.get('teamId') || (isInviteForMe ? pendingInvite?.teamId : null) || teamDoc?.id;
 
     // Determine target role based on verified registry
     let metaRole: UserRole | null = null;
