@@ -89,8 +89,6 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
 
     const uid = authUser.id || authUser.uid;
     const email = (authUser.email || '').toLowerCase();
-    const isAntonio = email.includes('antonio');
-    const isJoadson = email.includes('joadsonrocharr') || email.includes('joadson');
 
     // Retrieve pending invite metadata if available
     let pendingInvite: any = null;
@@ -138,14 +136,14 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
 
     // Determine target role based on verified registry
     let metaRole: UserRole | null = null;
-    if (isJoadson) {
-      metaRole = 'coordenador_geral';
-    } else if (regionalCoordDoc || preRegDoc?.role === 'coordenador_regional' || urlRole === 'coordenador_regional' || authUser?.user_metadata?.role === 'coordenador_regional' || isAntonio) {
+    if (regionalCoordDoc || preRegDoc?.role === 'coordenador_regional' || urlRole === 'coordenador_regional' || authUser?.user_metadata?.role === 'coordenador_regional') {
       metaRole = 'coordenador_regional';
     } else if (preRegDoc?.role === 'lider' || teamDoc || urlRole === 'lider' || authUser?.user_metadata?.role === 'lider') {
       metaRole = 'lider';
     } else if (preRegDoc?.role || authUser?.user_metadata?.role || urlRole) {
       metaRole = (preRegDoc?.role || authUser?.user_metadata?.role || urlRole) as UserRole;
+    } else if (profile?.role) {
+      metaRole = profile.role as UserRole;
     } else {
       // Padrão do sistema: Acesso direto (Google Auth ou criação de conta sem convite) é Coordenador Geral
       metaRole = 'coordenador_geral';
@@ -173,15 +171,15 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
           createdAt: Date.now()
         };
       } else {
-        const determinedRole: UserRole = metaRole || (isAntonio ? 'coordenador_regional' : 'coordenador_geral');
+        const determinedRole: UserRole = metaRole || 'coordenador_geral';
         const determinedCoordId = (determinedRole === 'coordenador_geral') ? uid : (metaCoordId || uid);
         profile = {
           id: uid,
           uid,
           email,
           role: determinedRole,
-          name: authUser.user_metadata?.full_name || authUser.displayName || (isJoadson ? 'Joadson Rocha' : isAntonio ? 'ANTONIO FURTADO' : email.split('@')[0]),
-          region: authUser.user_metadata?.region || urlRegion || (isAntonio ? 'REGIÃO 1 - BV' : null),
+          name: authUser.user_metadata?.full_name || authUser.displayName || email.split('@')[0],
+          region: authUser.user_metadata?.region || urlRegion || null,
           coordinatorId: determinedCoordId,
           createdAt: Date.now()
         };
@@ -192,18 +190,18 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       const targetRole = metaRole;
       const targetCoordId = metaCoordId;
 
-      // Auto-correct role if the user is registered as a regional coordinator but profile was erroneously saved as 'lider'
-      if (targetRole && profile.role !== targetRole && !isJoadson) {
+      // Auto-correct role if the user is registered as a regional coordinator or team leader but was previously unassigned
+      if (targetRole && profile.role !== targetRole) {
         profile.role = targetRole;
         updated = true;
       }
-      // Se o usuário está como 'lider' por fallback antigo, mas não tem vínculo com nenhuma equipe, promove para coordenador_geral
+      // Se o usuário está como 'lider' por fallback antigo, mas não tem vínculo com nenhuma equipe ou preReg, promove para coordenador_geral
       if (profile.role === 'lider' && !teamDoc && !regionalCoordDoc && !preRegDoc && !urlRole && (!profile.teamId || profile.teamId === 'null')) {
         profile.role = 'coordenador_geral';
         profile.coordinatorId = uid;
         updated = true;
       }
-      if (targetCoordId && profile.coordinatorId !== targetCoordId && !isJoadson && profile.role !== 'coordenador_geral') {
+      if (targetCoordId && profile.coordinatorId !== targetCoordId && profile.role !== 'coordenador_geral') {
         profile.coordinatorId = targetCoordId;
         updated = true;
       }
@@ -228,12 +226,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    let currentRole: UserRole = profile.role || (isAntonio ? 'coordenador_regional' : 'coordenador_geral');
-    if (isJoadson) {
-      currentRole = 'coordenador_geral';
-    } else if (isAntonio && currentRole !== 'coordenador_regional') {
-      currentRole = 'coordenador_regional';
-    }
+    const currentRole: UserRole = profile.role || 'coordenador_geral';
 
     const regionalCheck = currentRole === 'coordenador_regional';
     const geralCheck = (currentRole === 'coordenador_geral' || currentRole === 'coordenador') && !regionalCheck;
@@ -261,7 +254,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     setIsRegional(regionalCheck);
     setIsLeader(leaderCheck);
     setIsAdmin(adminCheck);
-    setUserRegion(profile.region || (isAntonio ? 'REGIÃO 1 - BV' : null));
+    setUserRegion(profile.region || null);
     setForcePasswordChange(mustForcePassword);
     setCoordinatorId(effectiveCoordId);
     setLoading(false);

@@ -1760,13 +1760,6 @@ export default function CoordinatorDashboard({
       unsubProfile = supabaseService.subscribeToCollection<any>('users', (data) => {
         const found = data.find(u => u.id === user.uid);
         if (found) {
-          const userEmail = (user.email || found.email || '').toLowerCase();
-          const userName = (found.name || '').toLowerCase();
-          const isAntonio = userEmail.includes('antonio') || userName.includes('antonio');
-          if (isAntonio && found.role !== 'coordenador_regional') {
-            found.role = 'coordenador_regional';
-            supabaseService.setDocument('users', user.uid, { ...found, role: 'coordenador_regional' }).catch(console.error);
-          }
           setProfileData(found);
         }
       });
@@ -2441,7 +2434,7 @@ export default function CoordinatorDashboard({
                   {profileData?.name || user?.displayName || user?.email?.split('@')[0] || 'Usuário'}
                 </p>
                 <p className="text-[10px] font-semibold text-[var(--text-secondary)] truncate">
-                  {(profileData?.role === 'coordenador_regional' || isRegional || (user?.email && user.email.toLowerCase().includes('antonio')) || (profileData?.email && profileData.email.toLowerCase().includes('antonio'))) ? 'Coord. Regional' : 'Coord. Geral'}
+                  {(profileData?.role === 'coordenador_regional' || isRegional) ? 'Coord. Regional' : 'Coord. Geral'}
                 </p>
               </div>
               <Settings className="w-4 h-4 text-zinc-400 group-hover:text-blue-600 shrink-0 transition-colors" />
@@ -2617,7 +2610,7 @@ export default function CoordinatorDashboard({
               <div className="hidden xl:block text-left">
                 <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-none mb-0.5">{profileData?.name || user?.email?.split('@')[0]}</p>
                 <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
-                  {(profileData?.role === 'coordenador_regional' || isRegional || (user?.email && user.email.toLowerCase().includes('antonio')) || (profileData?.email && profileData.email.toLowerCase().includes('antonio')) || (profileData?.name && profileData.name.toLowerCase().includes('antonio'))) 
+                  {(profileData?.role === 'coordenador_regional' || isRegional) 
                     ? 'Coordenador Regional' 
                     : (profileData?.role === 'coordenador_geral' || isGeral) 
                     ? 'Coordenador Geral' 
@@ -6495,7 +6488,7 @@ export default function CoordinatorDashboard({
                         Configurações do Sistema
                       </h2>
                       <p className="text-blue-600 text-[8px] font-black mt-2 uppercase tracking-widest">
-                        Acesso de {(profileData?.role === 'coordenador_regional' || isRegional || (user?.email && user.email.toLowerCase().includes('antonio')) || (profileData?.email && profileData.email.toLowerCase().includes('antonio')) || (profileData?.name && profileData.name.toLowerCase().includes('antonio'))) ? 'Coordenação Regional' : (profileData?.role === 'coordenador_geral' || isGeral) ? 'Coordenação Geral' : isLeader ? 'Liderança de Equipe' : 'Coordenação'}
+                        Acesso de {(profileData?.role === 'coordenador_regional' || isRegional) ? 'Coordenação Regional' : (profileData?.role === 'coordenador_geral' || isGeral) ? 'Coordenação Geral' : isLeader ? 'Liderança de Equipe' : 'Coordenação'}
                       </p>
                    </div>
                 </div>

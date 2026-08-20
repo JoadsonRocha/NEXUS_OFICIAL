@@ -192,14 +192,12 @@ export function ProfilePage() {
 
   const isCoordenadorRegional = isRegional || 
     user?.role === 'coordenador_regional' || 
-    profileDoc?.role === 'coordenador_regional' || 
-    (user?.email && user.email.toLowerCase().includes('antonio')) ||
-    (profileDoc?.email && profileDoc.email.toLowerCase().includes('antonio'));
+    profileDoc?.role === 'coordenador_regional';
 
   const getRoleBadgeLabel = () => {
     if (isCoordenadorRegional) return 'Coordenador Regional';
     if (isGeral || user?.role === 'coordenador_geral' || profileDoc?.role === 'coordenador_geral') return 'Coordenador Geral';
-    if (isLeader || user?.role === 'lider' || profileDoc?.role === 'lider') return 'Líder de Equipe / Bairro';
+    if (isLeader || user?.role === 'lider' || profileDoc?.role === 'lider') return 'Líder de Equipe';
     return 'Operador do Sistema';
   };
 
