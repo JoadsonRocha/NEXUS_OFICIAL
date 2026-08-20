@@ -23,7 +23,16 @@ import {
   TrendingUp,
   Award,
   Check,
-  Star
+  Star,
+  Map,
+  Package,
+  Calendar,
+  Layers,
+  Database,
+  Share2,
+  DollarSign,
+  Radio,
+  FileSpreadsheet
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 import { ASAAS_PLAN_LINKS, COMMERCIAL_WHATSAPP_NUMBER } from '../config/asaasConfig';
@@ -45,27 +54,37 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
   return (
     <div className="min-h-screen bg-[#090d16] text-slate-100 font-sans selection:bg-blue-600 selection:text-white transition-colors duration-300">
       
-      {/* HEADER SUPERIOR */}
-      <header className="sticky top-0 z-40 bg-[#090d16]/90 backdrop-blur-md border-b border-white/10 px-4 md:px-8 py-3.5 flex items-center justify-between shadow-xs">
+      {/* HEADER SUPERIOR COM LOGO COMPACTA NO CANTO ESQUERDO */}
+      <header className="sticky top-0 z-40 bg-[#090d16]/90 backdrop-blur-md border-b border-white/10 px-4 md:px-8 py-3 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center p-1 shadow-sm">
-            <img src={logoImg} alt="Nexus Política" className="w-full h-full object-contain" />
+          <div className="bg-white/95 px-2.5 py-1 rounded-xl shadow-md border border-white/20 flex items-center justify-center">
+            <img 
+              src={logoImg} 
+              onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }}
+              alt="Nexus Política" 
+              className="h-7 md:h-8 w-auto object-contain" 
+            />
           </div>
-          <span className="font-black text-sm md:text-base text-slate-100 tracking-tight hidden sm:inline">
-            NEXUS <span className="text-blue-500">POLÍTICA</span>
-          </span>
+          <div className="hidden sm:block text-left">
+            <span className="font-black text-sm md:text-base text-slate-100 tracking-tight block leading-tight">
+              NEXUS <span className="text-blue-500">POLÍTICA</span>
+            </span>
+            <span className="text-[10px] text-slate-400 font-medium leading-none">
+              Gestão & Inteligência Eleitoral
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
           <a
-            href={`https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Ol%C3%A1!%20Gostaria%20de%20conversar%20sobre%20o%20Nexus%20Pol%C3%ADtica%20para%20minha%20campanha.`}
+            href={`https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Ol%C3%A1!%20Gostaria%20de%20tirar%20d%C3%BAvidas%20sobre%20o%20Nexus%20Pol%C3%ADtica.`}
             target="_blank"
             rel="noreferrer"
             className="px-3.5 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/25 text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
           >
             <MessageSquare className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Falar com Consultor</span>
-            <span className="sm:hidden">Consultor</span>
+            <span className="sm:hidden">WhatsApp</span>
           </a>
 
           <button
@@ -79,36 +98,24 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
       </header>
 
       {/* HERO SECTION */}
-      <section className="relative px-4 md:px-8 py-12 md:py-20 max-w-6xl mx-auto text-center space-y-7 overflow-hidden">
+      <section className="relative px-4 md:px-8 pt-12 pb-16 md:pt-16 md:pb-20 max-w-6xl mx-auto text-center space-y-6 overflow-hidden">
         {/* Glows */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 md:w-[650px] h-96 md:h-[650px] bg-blue-600/15 rounded-full blur-[150px] pointer-events-none"></div>
 
         {/* Badge de Destaque */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold tracking-wide">
           <HeartHandshake className="w-4 h-4 text-emerald-400" />
-          Feito por quem conhece o dia a dia real da política
-        </div>
-
-        {/* Logotipo Central */}
-        <div className="flex justify-center pt-1 pb-1">
-          <div className="bg-white p-3 sm:p-4 rounded-3xl shadow-2xl shadow-blue-600/10 border border-slate-200 inline-flex items-center justify-center transition-all hover:scale-105 overflow-hidden">
-            <img 
-              src={logoImg} 
-              onError={(e) => { const t = e.currentTarget; if (!t.dataset.fallback) { t.dataset.fallback = 'true'; t.src = '/logo.png'; } }} 
-              alt="Nexus Política" 
-              className="h-24 sm:h-36 md:h-44 w-auto object-contain scale-110 transform p-1" 
-            />
-          </div>
+          A Plataforma Completa de Inteligência, Mobilização e Controle de Votos
         </div>
 
         {/* Título Principal */}
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-100 tracking-tight leading-tight max-w-4xl mx-auto">
-          Campanha que vence é campanha que <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400">conhece o eleitor pelo nome</span>
+          Transforme apoio de rua em <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400">votos confirmados</span> na urna
         </h1>
 
         {/* Subtítulo Humanizado */}
         <p className="text-slate-300 text-sm sm:text-base md:text-lg max-w-3xl mx-auto leading-relaxed font-normal">
-          Abandone as anotações perdidas em cadernos e as promessas soltas. Dê à sua equipe uma ferramenta simples e acolhedora para organizar lideranças nos bairros, conversar no WhatsApp com respeito e garantir que cada apoio vire voto no dia da eleição.
+          O <strong>Nexus Política</strong> é o centro de comando completo para candidatos e coordenadores que querem liderar com organização. Conecte sua coordenação geral, seus líderes de bairro e seus apoiadores em um sistema leve, rápido e 100% no celular.
         </p>
 
         {/* Botões de Ação */}
@@ -118,209 +125,221 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-blue-600/30 active:scale-95 transition-all cursor-pointer"
           >
             <Zap className="w-4 h-4 text-amber-300" />
-            Começar Gratuitamente
+            Entrar no Sistema Gratuitamente
           </button>
 
           <a
-            href="#planos"
+            href="#funcionalidades"
             className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[#0f172a] hover:bg-[#1e293b] text-slate-300 hover:text-white border border-white/10 font-bold text-xs sm:text-sm transition-all"
           >
-            Conhecer Planos e Preços
+            Ver Todas as Funcionalidades
           </a>
         </div>
 
         {/* Destaques Rápidos */}
-        <div className="pt-10 grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
+        <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
           <div className="p-4 rounded-2xl bg-[#0f172a]/80 border border-white/10 backdrop-blur-sm shadow-sm">
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-black uppercase mb-1">
-              <Check className="w-4 h-4" /> 100% Gratuito
+              <Check className="w-4 h-4" /> WhatsApp wa.me
             </div>
             <div className="text-xs text-slate-300 font-medium leading-tight">
-              Disparos de WhatsApp direto pelo wa.me sem taxas extras
+              Mensagens personalizadas com o nome do eleitor sem pagar taxas
             </div>
           </div>
 
           <div className="p-4 rounded-2xl bg-[#0f172a]/80 border border-white/10 backdrop-blur-sm shadow-sm">
             <div className="flex items-center gap-2 text-blue-400 text-xs font-black uppercase mb-1">
-              <Users className="w-4 h-4" /> Equipe Alinhada
+              <Users className="w-4 h-4" /> 3 Níveis de Acesso
             </div>
             <div className="text-xs text-slate-300 font-medium leading-tight">
-              Coordenador Geral, Líderes Regionais e Mobilizadores
+              Coordenador Geral, Regionais e Líderes de Equipe alinhados
             </div>
           </div>
 
           <div className="p-4 rounded-2xl bg-[#0f172a]/80 border border-white/10 backdrop-blur-sm shadow-sm">
             <div className="flex items-center gap-2 text-amber-400 text-xs font-black uppercase mb-1">
-              <Smartphone className="w-4 h-4" /> Fácil de Usar
+              <Smartphone className="w-4 h-4" /> 100% Web & Leve
             </div>
             <div className="text-xs text-slate-300 font-medium leading-tight">
-              Não precisa baixar nada na loja: funciona no navegador
+              Não precisa instalar app na Play Store: roda liso no navegador
             </div>
           </div>
 
           <div className="p-4 rounded-2xl bg-[#0f172a]/80 border border-white/10 backdrop-blur-sm shadow-sm">
             <div className="flex items-center gap-2 text-indigo-400 text-xs font-black uppercase mb-1">
-              <MapPin className="w-4 h-4" /> Inteligência Real
+              <MapPin className="w-4 h-4" /> Mapa de Calor
             </div>
             <div className="text-xs text-slate-300 font-medium leading-tight">
-              Mapa de calor da sua cidade com metas claras por bairro
+              Metas por bairro e histórico do TRE por local de votação
             </div>
           </div>
         </div>
       </section>
 
-      {/* COMPARAÇÃO: O JEITO ANTIGO VS. O JEITO NEXUS */}
+      {/* SEÇÃO: O QUE É O NEXUS POLÍTICA (EXPLICAÇÃO CLARA) */}
       <section className="px-4 md:px-8 py-16 bg-[#0f172a]/50 border-y border-white/10">
-        <div className="max-w-5xl mx-auto space-y-10">
+        <div className="max-w-5xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <span className="text-xs font-black uppercase text-blue-400 tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-              A DIFERENÇA NA PRÁTICA
+              ENTENDA O PROJETO
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-slate-100 tracking-tight">
-              A certeza de que sua equipe está no caminho da vitória
+              O que é e como o Nexus Política faz sua campanha vencer?
             </h2>
             <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-              Veja a diferença entre fazer campanha no escuro e liderar com organização tática.
+              Uma plataforma pensada para resolver a dor número 1 de qualquer campanha: <strong>o controle e acompanhamento real de eleitores</strong>.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* O Jeito Antigo */}
-            <div className="p-6 rounded-2xl bg-red-950/20 border border-red-500/20 space-y-4">
-              <div className="flex items-center gap-2 text-red-400 font-black text-sm uppercase">
-                <X className="w-5 h-5" /> Sem o Nexus Política
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold">
+                1
               </div>
-              <ul className="space-y-3 text-xs text-slate-300">
-                <li className="flex items-start gap-2">
-                  <span className="text-red-400 font-bold">•</span>
-                  <span>Cadernos de anotações perdidos e planilhas desatualizadas no computador.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-red-400 font-bold">•</span>
-                  <span>O candidato não sabe quantos votos reais cada liderança está trazendo.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-red-400 font-bold">•</span>
-                  <span>Eleitores cadastrados que nunca mais recebem uma mensagem ou ligação.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-red-400 font-bold">•</span>
-                  <span>Combustível e materiais distribuídos sem controle de quem realmente está na rua.</span>
-                </li>
-              </ul>
+              <h3 className="font-bold text-slate-100 text-base">Chega de Promessas no Vazio</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Muitas lideranças dizem que têm 500 votos, mas na hora da urna nada aparece. No Nexus, cada líder registra seus apoiadores com nome, telefone e bairro, gerando transparência e confiança mútua.
+              </p>
             </div>
 
-            {/* O Jeito Nexus */}
-            <div className="p-6 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-4 shadow-lg shadow-emerald-950/10">
-              <div className="flex items-center gap-2 text-emerald-400 font-black text-sm uppercase">
-                <CheckCircle2 className="w-5 h-5" /> Com o Nexus Política
+            <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold">
+                2
               </div>
-              <ul className="space-y-3 text-xs text-slate-200">
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span><strong>Tudo no celular:</strong> Líderes cadastram apoiadores no portão de cada casa em segundos.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span><strong>Transparência total:</strong> O Coordenador acompanha o mapa da cidade e o alcance em tempo real.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span><strong>Acolhimento contínuo:</strong> Mensagens no WhatsApp chamando cada eleitor pelo seu próprio nome.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span><strong>Motivação de equipe:</strong> Metas claras e reconhecimento para quem faz a campanha acontecer.</span>
-                </li>
-              </ul>
+              <h3 className="font-bold text-slate-100 text-base">Contato Direto e Respeitoso</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                O eleitor cadastrado não é esquecido. Com apenas um clique, o líder ou coordenador abre a conversa oficial de WhatsApp com mensagem personalizada para acolher, informar e convidar.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold">
+                3
+              </div>
+              <h3 className="font-bold text-slate-100 text-base">Inteligência Tática na Tomada de Decisão</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                O Coordenador Geral enxerga onde a campanha está forte e onde precisa reforçar visitas, carros de som, caminhadas e distribuição de materiais através do mapa de calor em tempo real.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 3 NÍVEIS DE COORDENAÇÃO */}
-      <section className="px-4 md:px-8 py-16 max-w-6xl mx-auto space-y-12">
+      {/* SEÇÃO PRINCIPAL: TODAS AS FUNCIONALIDADES DETALHADAS */}
+      <section id="funcionalidades" className="px-4 md:px-8 py-16 max-w-6xl mx-auto space-y-12">
         <div className="text-center space-y-3">
-          <span className="text-xs font-black uppercase text-amber-400 tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-            A FORÇA DA SUA EQUIPE
+          <span className="text-xs font-black uppercase text-emerald-400 tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+            ARSENAL COMPLETO DE FERRAMENTAS
           </span>
           <h2 className="text-2xl sm:text-4xl font-black text-slate-100 tracking-tight">
-            Cada pessoa com seu papel, unidas pelo mesmo objetivo
+            Todas as Funcionalidades que Sua Campanha Precisa
           </h2>
           <p className="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
-            Uma estrutura simples e transparente que valoriza o trabalho de quem está no comando e de quem está na rua.
+            Do planejamento estratégico no comitê central até a abordagem de porta em porta na rua:
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-          {/* Nível 1: Coordenador Geral */}
-          <div className="p-6 rounded-2xl bg-[#0f172a] border border-amber-500/40 flex flex-col justify-between space-y-5 shadow-lg shadow-amber-500/5">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                  <Crown className="w-6 h-6" />
-                </div>
-                <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold text-[10px] uppercase tracking-wider">
-                  Comando Estratégico
-                </span>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-black text-amber-300">1. Coordenador Geral</h3>
-                <p className="text-xs text-amber-400/80 font-medium mt-0.5">Visão Global da Campanha</p>
-              </div>
-
-              <p className="text-xs text-slate-300 leading-relaxed border-t border-white/10 pt-3">
-                Define os objetivos globais da eleição, acompanha o mapa de calor de apoio em toda a cidade, publica as orientações diárias na <strong>Ordem do Dia</strong> e cuida da logística da campanha.
-              </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          {/* Card 1: Mapa de Calor */}
+          <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-blue-500/50 transition-all space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+              <Map className="w-6 h-6" />
             </div>
+            <h3 className="font-bold text-slate-100 text-base">Mapa de Calor da Cidade</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Visualize geograficamente onde estão concentrados seus eleitores e apoiadores por bairro, zona eleitoral e município, direcionando caminhadas e eventos.
+            </p>
           </div>
 
-          {/* Nível 2: Coordenador Regional */}
-          <div className="p-6 rounded-2xl bg-[#0f172a] border border-blue-500/40 flex flex-col justify-between space-y-5 shadow-lg shadow-blue-500/5">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                  <MapPin className="w-6 h-6" />
-                </div>
-                <span className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 font-bold text-[10px] uppercase tracking-wider">
-                  Articulação Local
-                </span>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-black text-blue-300">2. Coordenadores Regionais</h3>
-                <p className="text-xs text-blue-400/80 font-medium mt-0.5">Liderança de Zonas e Bairros</p>
-              </div>
-
-              <p className="text-xs text-slate-300 leading-relaxed border-t border-white/10 pt-3">
-                Cuidam de uma região específica, cadastram os líderes de equipe da sua comunidade, distribuem os materiais e garantem que as metas do seu bairro sejam atingidas com sucesso.
-              </p>
+          {/* Card 2: WhatsApp wa.me */}
+          <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-emerald-500/50 transition-all space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <MessageSquare className="w-6 h-6" />
             </div>
+            <h3 className="font-bold text-slate-100 text-base">Disparos de WhatsApp sem Taxas</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Envio de mensagens pré-formatadas diretamente pelo WhatsApp oficial do celular de cada operador, chamando o eleitor pelo nome com 100% de taxa de entrega.
+            </p>
           </div>
 
-          {/* Nível 3: Líderes de Equipe */}
-          <div className="p-6 rounded-2xl bg-[#0f172a] border border-emerald-500/40 flex flex-col justify-between space-y-5 shadow-lg shadow-emerald-500/5">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                  <Users className="w-6 h-6" />
-                </div>
-                <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold text-[10px] uppercase tracking-wider">
-                  Contato com a População
-                </span>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-black text-emerald-300">3. Líderes de Equipe</h3>
-                <p className="text-xs text-emerald-400/80 font-medium mt-0.5">Mobilizadores de Rua e Famílias</p>
-              </div>
-
-              <p className="text-xs text-slate-300 leading-relaxed border-t border-white/10 pt-3">
-                Conversam diretamente com os vizinhos, amigos e eleitores. Cadastram as pessoas pelo celular e mantêm o contato ativo no WhatsApp com carinho até o dia da votação.
-              </p>
+          {/* Card 3: 3 Níveis de Hierarquia */}
+          <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-amber-500/50 transition-all space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <Layers className="w-6 h-6" />
             </div>
+            <h3 className="font-bold text-slate-100 text-base">Gestão em 3 Níveis de Comando</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Permissões automáticas para <strong>Coordenador Geral</strong>, <strong>Coordenadores Regionais</strong> e <strong>Líderes de Equipe</strong>, mantendo tudo sob controle.
+            </p>
           </div>
+
+          {/* Card 4: Metas em Tempo Real */}
+          <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-indigo-500/50 transition-all space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <TrendingUp className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-100 text-base">Metas e Progresso em Tempo Real</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Defina metas de votos por bairro e acompanhe o percentual alcançado com atualização instantânea (0ms) a cada novo apoiador cadastrado na rua.
+            </p>
+          </div>
+
+          {/* Card 5: Dados Históricos do TRE */}
+          <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-purple-500/50 transition-all space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+              <FileSpreadsheet className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-100 text-base">Importação de Dados do TRE</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Carregue os dados de eleições anteriores e saiba exatamente em quais seções e colégios eleitorais o candidato teve mais votos no passado.
+            </p>
+          </div>
+
+          {/* Card 6: Logística & Materiais */}
+          <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-blue-500/50 transition-all space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+              <Package className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-100 text-base">Logística de Materiais & Combustível</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Controle a entrega de santinhos, bandeiras, adesivos e cotas de combustível para cada equipe com prestação de contas digital.
+            </p>
+          </div>
+
+          {/* Card 7: Ordem do Dia */}
+          <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-amber-500/50 transition-all space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <Radio className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-100 text-base">Ordem do Dia & Mural Tático</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Transmita as diretrizes, recados urgentes e orientações de campanha do dia para que todos os líderes falem a mesma língua nas ruas.
+            </p>
+          </div>
+
+          {/* Card 8: Link Público de Apoio */}
+          <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-emerald-500/50 transition-all space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <Share2 className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-100 text-base">Link de Autocadastro de Apoiadores</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Compartilhe seu link exclusivo no Instagram, Facebook e WhatsApp para que os próprios eleitores se cadastrem no time do candidato.
+            </p>
+          </div>
+
+          {/* Card 9: Financeiro & TSE */}
+          <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-indigo-500/50 transition-all space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <DollarSign className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-100 text-base">Controle Financeiro & SPCE/TSE</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Gestão de entradas, saídas, comprovantes e emissão de relatórios contábeis para facilitar a prestação de contas no sistema oficial do TSE.
+            </p>
+          </div>
+
         </div>
       </section>
 
