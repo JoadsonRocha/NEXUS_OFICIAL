@@ -6,7 +6,7 @@ import { getSupabaseClient } from '../lib/supabase';
 import { showToast } from '../components/GlobalToastHost';
 import logoImg from '../assets/logo.png';
 
-export default function ResetPasswordPage(): JSX.Element {
+export default function ResetPasswordPage(): React.ReactElement {
   const navigate = useNavigate();
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
