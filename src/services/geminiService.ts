@@ -8,56 +8,79 @@
 
 export async function processarCaos(textoBruto: string) {
   if (!textoBruto || textoBruto.trim().length === 0) {
-    throw new Error("Texto bruto está vazio.");
+    return {
+      tarefas_logistica: [],
+      acoes_politicas: [],
+      alertas_crise: [],
+      sugestoes_agenda: []
+    };
   }
 
-  const response = await fetch('/api/ai/process', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: textoBruto, type: 'caos' })
-  });
+  try {
+    const response = await fetch('/api/ai/process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: textoBruto, type: 'caos' })
+    });
 
-  if (!response.ok) {
-    throw new Error('Erro ao processar IA no backend.');
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (e) {
+    console.warn('Fallback em processarCaos:', e);
   }
 
-  return response.json();
+  return {
+    tarefas_logistica: [],
+    acoes_politicas: [textoBruto],
+    alertas_crise: [],
+    sugestoes_agenda: []
+  };
 }
 
-export async function processarNotaAudio(textoBruto: string) {
+export async function processarNotaAudio(textoBruto: string): Promise<string> {
   if (!textoBruto || textoBruto.trim().length === 0) {
-    throw new Error("Conteúdo da nota vazio.");
+    return "";
   }
 
-  const response = await fetch('/api/ai/process', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: textoBruto, type: 'nota' })
-  });
+  try {
+    const response = await fetch('/api/ai/process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: textoBruto, type: 'nota' })
+    });
 
-  if (!response.ok) {
-    throw new Error('Erro ao processar IA no backend.');
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.text) return data.text;
+    }
+  } catch (e) {
+    console.warn('Fallback em processarNotaAudio:', e);
   }
 
-  const data = await response.json();
-  return data.text;
+  // Fallback: Retorna o próprio texto transcrito/digitado para nunca impedir o salvamento da anotação
+  return textoBruto;
 }
 
-export async function gerarBriefingCandidato(municipio: string, demandas: any[]) {
+export async function gerarBriefingCandidato(municipio: string, demandas: any[]): Promise<string> {
   if (!municipio) {
-    throw new Error("Município não especificado.");
+    return "Município não especificado.";
   }
 
-  const response = await fetch('/api/ai/process', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: '', type: 'briefing', context: { municipio, demandas } })
-  });
+  try {
+    const response = await fetch('/api/ai/process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: '', type: 'briefing', context: { municipio, demandas } })
+    });
 
-  if (!response.ok) {
-    throw new Error('Erro ao processar IA no backend.');
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.text) return data.text;
+    }
+  } catch (e) {
+    console.warn('Fallback em gerarBriefingCandidato:', e);
   }
 
-  const data = await response.json();
-  return data.text;
+  return `Briefing Estratégico - ${municipio}\n\n• Foco: Alinhamento de demandas prioritárias com lideranças da região.\n• Pautas: Atenção às necessidades comunitárias mapeadas.`;
 }

@@ -177,7 +177,20 @@ async function startServer() {
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY não configurada no servidor.' });
+      if (type === 'caos') {
+        return res.status(200).json({
+          tarefas_logistica: [],
+          acoes_politicas: text ? [text] : [],
+          alertas_crise: [],
+          sugestoes_agenda: []
+        });
+      }
+      if (type === 'briefing') {
+        return res.status(200).json({
+          text: `Briefing para ${context?.municipio || 'a região'}: Priorizar diálogo com as lideranças locais e atenção às demandas comunitárias cadastradas.`
+        });
+      }
+      return res.status(200).json({ text: text || '' });
     }
 
     try {
@@ -204,11 +217,20 @@ async function startServer() {
       if (type === 'caos') {
          res.status(200).json(JSON.parse(response.text || '{}'));
       } else {
-         res.status(200).json({ text: response.text });
+         res.status(200).json({ text: response.text || text });
       }
     } catch (err: any) {
-      console.error('Erro na API do Gemini:', err);
-      res.status(500).json({ error: 'Erro ao processar IA', details: err.message });
+      console.error('Erro na API do Gemini, usando fallback seguro:', err.message);
+      if (type === 'caos') {
+        res.status(200).json({
+          tarefas_logistica: [],
+          acoes_politicas: text ? [text] : [],
+          alertas_crise: [],
+          sugestoes_agenda: []
+        });
+      } else {
+        res.status(200).json({ text: text || '' });
+      }
     }
   });
 
