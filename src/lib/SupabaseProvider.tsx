@@ -145,6 +145,9 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       metaRole = 'lider';
     } else if (preRegDoc?.role || authUser?.user_metadata?.role || urlRole) {
       metaRole = (preRegDoc?.role || authUser?.user_metadata?.role || urlRole) as UserRole;
+    } else {
+      // Padrão do sistema: Acesso direto (Google Auth ou criação de conta sem convite) é Coordenador Geral
+      metaRole = 'coordenador_geral';
     }
 
     const metaCoordId = preRegDoc?.coordinatorId || regionalCoordDoc?.coordinatorId || teamDoc?.coordinatorId || authUser?.user_metadata?.coordinatorId || urlCoordId;
@@ -169,7 +172,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
           createdAt: Date.now()
         };
       } else {
-        const determinedRole: UserRole = metaRole || (isAntonio ? 'coordenador_regional' : (isJoadson ? 'coordenador_geral' : 'lider'));
+        const determinedRole: UserRole = metaRole || (isAntonio ? 'coordenador_regional' : 'coordenador_geral');
         const determinedCoordId = (determinedRole === 'coordenador_geral') ? uid : (metaCoordId || uid);
         profile = {
           id: uid,
@@ -191,6 +194,12 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       // Auto-correct role if the user is registered as a regional coordinator but profile was erroneously saved as 'lider'
       if (targetRole && profile.role !== targetRole && !isJoadson) {
         profile.role = targetRole;
+        updated = true;
+      }
+      // Se o usuário está como 'lider' por fallback antigo, mas não tem vínculo com nenhuma equipe, promove para coordenador_geral
+      if (profile.role === 'lider' && !teamDoc && !regionalCoordDoc && !preRegDoc && !urlRole && (!profile.teamId || profile.teamId === 'null')) {
+        profile.role = 'coordenador_geral';
+        profile.coordinatorId = uid;
         updated = true;
       }
       if (targetCoordId && profile.coordinatorId !== targetCoordId && !isJoadson && profile.role !== 'coordenador_geral') {
