@@ -225,6 +225,9 @@ export function LoginPage() {
           if (isCredentialIssue || preRegDoc || params.get('access_token')) {
             setAuthInfo('Configurando acesso e ambiente seguro...');
             
+            const isInvitedAccount = Boolean(preRegDoc || params.get('access_token'));
+            const shouldForce = isInvitedAccount && !preRegDoc?.passwordChangedAt;
+
             try {
               await signupWithEmail(email, password, effectiveRole, {
                 name: preRegDoc?.name || email.split('@')[0],
@@ -235,7 +238,7 @@ export function LoginPage() {
                 teamId: effectiveTeamId,
                 coordinatorId: effectiveCoordinatorId,
                 regionalCoordId: effectiveRegionalCoordId,
-                forcePasswordChange: false
+                forcePasswordChange: shouldForce
               });
             } catch (signupErr: any) {
               const signupErrStr = (signupErr.message || '').toLowerCase();

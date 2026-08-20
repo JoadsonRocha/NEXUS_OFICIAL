@@ -235,12 +235,15 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
 
     const effectiveCoordId = geralCheck ? uid : (profile.coordinatorId || uid);
 
+    const hasPreReg = Boolean(preRegDoc || regionalCoordDoc || teamDoc);
+    const isTempPasswordAccount = hasPreReg && !preRegDoc?.passwordChangedAt && !profile?.passwordChangedAt;
+
     const alreadyChanged = localStorage.getItem(`nexus_pwd_changed_${uid}`) === 'true' || 
                            sessionStorage.getItem(`nexus_pwd_changed_${uid}`) === 'true' ||
-                           profile?.forcePasswordChange === false ||
-                           profile?.passwordChangedAt;
+                           Boolean(profile?.passwordChangedAt) ||
+                           Boolean(preRegDoc?.passwordChangedAt);
 
-    const mustForcePassword = !alreadyChanged && !!profile?.forcePasswordChange;
+    const mustForcePassword = !alreadyChanged && (isTempPasswordAccount || profile?.forcePasswordChange === true);
 
     setUser({
       uid,
