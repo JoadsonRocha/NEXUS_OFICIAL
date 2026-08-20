@@ -702,6 +702,12 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
           >
             <Scale className="w-3.5 h-3.5 text-amber-400" /> Prestação de Contas (TSE)
           </button>
+          <a
+            href="/suporte"
+            className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 bg-[#0f172a] hover:bg-[#1e293b] px-3.5 py-1.5 rounded-xl border border-white/10 cursor-pointer shadow-xs text-slate-300"
+          >
+            <Headphones className="w-3.5 h-3.5 text-emerald-400" /> Central de Suporte
+          </a>
         </div>
 
         <p className="text-[10px] text-slate-600 max-w-2xl mx-auto leading-relaxed">

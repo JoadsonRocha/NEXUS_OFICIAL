@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import logoImg from '../assets/logo.png';
 import { TreLocationFields } from './TreLocationFields';
 import { WhatsAppDispatchModal } from './WhatsAppDispatchModal';
@@ -199,19 +199,51 @@ export default function CoordinatorDashboard({
   setTheme: (t: 'light' | 'dark') => void;
 }) {
   const navigate = useNavigate();
+  const params = useParams<{ tab?: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, login, logout, isAdmin, isGeral, isRegional, isLeader, userRegion, coordinatorId } = useAuth();
 
-  // Restaurar a última aba visitada ao recarregar a página (persiste no localStorage)
+  // Restaurar a última aba visitada ou ler do caminho da URL / query param
   const ACTIVE_TAB_KEY = 'nexus_coordinator_active_tab';
   type ActiveTabType = 'overview' | 'candidato' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral';
-  const [activeTab, setActiveTabState] = useState<ActiveTabType>('overview');
+  
+  const resolveInitialTab = (): ActiveTabType => {
+    const rawTab = params.tab || searchParams.get('tab');
+    const validTabs: ActiveTabType[] = ['overview', 'candidato', 'regional_coords', 'metas', 'teams', 'voters', 'agenda', 'mapa', 'notes', 'materials', 'demands', 'reports', 'analise_eleitoral'];
+    if (rawTab && validTabs.includes(rawTab as ActiveTabType)) {
+      return rawTab as ActiveTabType;
+    }
+    try {
+      const saved = localStorage.getItem(ACTIVE_TAB_KEY);
+      if (saved && validTabs.includes(saved as ActiveTabType)) return saved as ActiveTabType;
+    } catch (_) {}
+    return 'overview';
+  };
 
-  // Função que salva a aba ativa no localStorage antes de mudar o estado
+  const [activeTab, setActiveTabState] = useState<ActiveTabType>(resolveInitialTab);
+
+  // Sincronizar com a URL ao mudar de aba
   const setActiveTab = (tab: ActiveTabType) => {
     try { localStorage.setItem(ACTIVE_TAB_KEY, tab); } catch (_) {}
     setActiveTabState(tab);
+    setSearchParams(prev => {
+      const updated = new URLSearchParams(prev);
+      updated.set('tab', tab);
+      return updated;
+    }, { replace: true });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Reagir quando a URL mudar (ex: botão Voltar / Avançar do navegador)
+  useEffect(() => {
+    const currentTab = params.tab || searchParams.get('tab');
+    if (currentTab && currentTab !== activeTab) {
+      const validTabs: ActiveTabType[] = ['overview', 'candidato', 'regional_coords', 'metas', 'teams', 'voters', 'agenda', 'mapa', 'notes', 'materials', 'demands', 'reports', 'analise_eleitoral'];
+      if (validTabs.includes(currentTab as ActiveTabType)) {
+        setActiveTabState(currentTab as ActiveTabType);
+      }
+    }
+  }, [params.tab, searchParams]);
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [selectedLinkTeam, setSelectedLinkTeam] = useState('');
 

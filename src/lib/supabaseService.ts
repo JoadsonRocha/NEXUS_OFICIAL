@@ -334,23 +334,24 @@ export const supabaseDataService = {
   _filteredSubscribers: new Map<string, Set<{ coordinatorId: string; callback: (data: any[]) => void }>>(),
 
   _notifySubscribers(path: string, coordinatorId?: string) {
-    // 1. Notify generic collection subscribers
+    const localItems = getLocalList<any>(path);
+
+    // 1. Notify generic collection subscribers with current authoritative in-memory data
     const genericSubs = this._subscribers.get(path);
     if (genericSubs && genericSubs.size > 0) {
-      this.getCollection(path).then(data => {
-        genericSubs.forEach(cb => {
-          try { cb(data); } catch (e) { console.warn(`Error notifying subscriber for ${path}:`, e); }
-        });
+      genericSubs.forEach(cb => {
+        try { cb([...localItems]); } catch (e) { console.warn(`Error notifying subscriber for ${path}:`, e); }
       });
     }
 
-    // 2. Notify filtered subscribers
+    // 2. Notify filtered subscribers with filtered in-memory data
     const filteredSubs = this._filteredSubscribers.get(path);
     if (filteredSubs && filteredSubs.size > 0) {
       filteredSubs.forEach(sub => {
-        this.getCollectionFiltered(path, sub.coordinatorId).then(data => {
-          try { sub.callback(data); } catch (e) { console.warn(`Error notifying filtered subscriber for ${path}:`, e); }
-        });
+        const filtered = (sub.coordinatorId && sub.coordinatorId.trim())
+          ? localItems.filter(i => !i.coordinatorId || i.coordinatorId === sub.coordinatorId || i.coordinator_id === sub.coordinatorId)
+          : localItems;
+        try { sub.callback([...filtered]); } catch (e) { console.warn(`Error notifying filtered subscriber for ${path}:`, e); }
       });
     }
 
@@ -371,7 +372,7 @@ export const supabaseDataService = {
     if (idx >= 0) {
       items[idx] = merge ? { ...items[idx], ...payload } : payload;
     } else {
-      items.push(payload);
+      items.unshift(payload);
     }
     setLocalList(path, items);
     try {
@@ -519,6 +520,7 @@ export const supabaseDataService = {
   },
 
   async getCollectionFiltered<T>(path: string, coordinatorId: string): Promise<T[]> {
+    const localItems = getLocalList<any>(path);
     const client = getSupabaseClient();
     if (client) {
       try {
@@ -534,22 +536,36 @@ export const supabaseDataService = {
         const { data, error } = await query;
 
         if (!error && data) {
-          const items = data.map(row => ({
+          const remoteItems = data.map(row => ({
             id: row.record_id,
             ...(row.payload || {})
-          })) as T[];
-          return items;
+          })) as any[];
+
+          // Merge remote with local in-memory/localStorage items
+          const map = new Map<string, any>();
+          remoteItems.forEach(item => map.set(item.id, item));
+          localItems.forEach(item => {
+            if (!map.has(item.id)) {
+              map.set(item.id, item);
+            }
+          });
+          const merged = Array.from(map.values()) as T[];
+          setLocalList(path, merged);
+
+          if (coordinatorId && coordinatorId.trim()) {
+            return merged.filter((item: any) => !item.coordinatorId || item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId);
+          }
+          return merged;
         }
       } catch (e) {
         console.warn(`Supabase getCollectionFiltered error for ${path}:`, e);
       }
     }
 
-    const all = getLocalList<any>(path);
     if (coordinatorId && coordinatorId.trim()) {
-      return all.filter(item => item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId) as T[];
+      return localItems.filter(item => !item.coordinatorId || item.coordinatorId === coordinatorId || item.coordinator_id === coordinatorId) as T[];
     }
-    return all as T[];
+    return localItems as T[];
   },
 
   async getCollectionPaginated<T>(path: string, coordinatorId: string, options: { page: number; pageSize: number; filters?: any }): Promise<{ data: T[], total: number }> {

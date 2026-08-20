@@ -16,6 +16,7 @@ const SalesLandingPage = lazy(() => import('./components/SalesLandingPage').then
 const TermsPage = lazy(() => import('./pages/TermsPage').then(m => ({ default: m.TermsPage })));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const CookiesPage = lazy(() => import('./pages/CookiesPage').then(m => ({ default: m.CookiesPage })));
+const SupportPage = lazy(() => import('./pages/SupportPage').then(m => ({ default: m.SupportPage })));
 
 import { useAuth } from './lib/SupabaseProvider';
 import { supabaseService } from './lib/supabaseService';
@@ -97,11 +98,13 @@ export default function App() {
         <Route path="/termos" element={<TermsPage />} />
         <Route path="/privacidade" element={<PrivacyPage />} />
         <Route path="/cookies" element={<CookiesPage />} />
+        <Route path="/suporte" element={<SupportPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/change-password" element={<ForcePasswordChangePage />} />
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/dashboard/:tab" element={<DashboardPage />} />
             <Route path="/perfil" element={<ProfilePage />} />
             <Route path="/powerbi" element={<AdvancedDashboardPage />} />
           </Route>
