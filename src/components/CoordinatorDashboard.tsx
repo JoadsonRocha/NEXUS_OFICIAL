@@ -735,7 +735,8 @@ export default function CoordinatorDashboard({
 
   const handleCreateGoal = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newGoal.locationName) {
+    const locationTrimmed = newGoal.locationName.trim();
+    if (!locationTrimmed) {
       alert("Informe o nome do local (Bairro, Município ou Região).");
       return;
     }
@@ -747,21 +748,29 @@ export default function CoordinatorDashboard({
     }
 
     try {
-      const cleanName = newGoal.locationName
+      // Gera um ID limpo para o banco baseado no texto formatado, mas mantém o nome original com espaços na propriedade
+      const cleanIdName = locationTrimmed
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-zA-Z0-9]/g, '_')
         .toLowerCase();
         
-      const goalId = `goal_${newGoal.category}_${cleanName}_${Date.now()}`;
+      const goalId = `goal_${newGoal.category}_${cleanIdName}_${Date.now()}`;
       
       await supabaseService.setDocument('goals', goalId, {
         ...newGoal,
-        locationName: newGoal.locationName.trim(),
+        locationName: locationTrimmed, // Salva o nome exato com espaços (Ex: "Boa Vista")
         targetVoters: Number(newGoal.targetVoters) || 500,
         coordinatorId: activeCoordId,
         createdAt: Date.now()
       });
+      
+      setNewGoal({ locationName: '', targetVoters: 1000, category: goalCategory });
+      alert("✅ Meta registrada com sucesso!");
+    } catch (err: any) {
+      alert("Erro ao salvar meta: " + err.message);
+    }
+  };
       
       setNewGoal({ locationName: '', targetVoters: 1000, category: goalCategory });
       alert("✅ Meta registrada com sucesso!");
