@@ -40,7 +40,6 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Estados para o Modal de Recuperação de Senha
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -48,7 +47,6 @@ export function LoginPage() {
   const [forgotError, setForgotError] = useState('');
   const [cooldownTimer, setCooldownTimer] = useState(0);
 
-  // Timer de resfriamento para reenvio de e-mail (evita spam e rate limit)
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (cooldownTimer > 0) {
@@ -59,7 +57,6 @@ export function LoginPage() {
     return () => clearInterval(interval);
   }, [cooldownTimer]);
 
-  // Handle URL Params for Easy Access and store them safely
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
@@ -124,10 +121,8 @@ export function LoginPage() {
     const urlRegion = params.get('region') || inviteParams.region || '';
 
     try {
-      // 1. Procurar pré-registro em 'pre_registrations'
       let preRegDoc = await supabaseService.getDocument('pre_registrations', email.toLowerCase()) as any;
       
-      // 2. Se não encontrou, verificar na coleção de coordenadores regionais
       if (!preRegDoc) {
         try {
           const allRegs = await supabaseService.getCollection<any>('regional_coordinators');
@@ -141,7 +136,6 @@ export function LoginPage() {
         } catch (e) {}
       }
 
-      // 3. Se não encontrou, verificar na coleção de equipes
       if (!preRegDoc) {
         try {
           const allTeams = await supabaseService.getCollection<any>('teams');
@@ -160,7 +154,6 @@ export function LoginPage() {
         } catch (e) {}
       }
 
-      // Definir o papel garantido
       let effectiveRole = preRegDoc?.role || urlRole || userRole;
       if (urlRole === 'coordenador_regional' || preRegDoc?.role === 'coordenador_regional') {
         effectiveRole = 'coordenador_regional';
@@ -173,7 +166,6 @@ export function LoginPage() {
           return;
         }
         
-        // Impedir que cadastros abertos ganhem direitos administrativos (exceto Coordenador Geral, que inicia a campanha)
         if ((effectiveRole === 'admin' || effectiveRole === 'coordenador') && !preRegDoc) {
           setAuthError('Erro de Segurança: Não é permitido criar contas administrativas sem pré-registro autorizado no comitê.');
           setIsLoading(false);
@@ -196,8 +188,6 @@ export function LoginPage() {
           }
         }
         
-        const shouldForce = false;
-        
         const result = await signupWithEmail(email, password, effectiveRole, {
           name: preRegDoc?.name || email.split('@')[0],
           phone: preRegDoc?.phone || '',
@@ -207,15 +197,17 @@ export function LoginPage() {
           teamId: effectiveTeamId,
           coordinatorId: effectiveCoordinatorId,
           regionalCoordId: effectiveRegionalCoordId,
-          forcePasswordChange: shouldForce
+          forcePasswordChange: false
         });
 
         if (result?.needsConfirmation) {
           setIsRegistering(false);
-          setAuthInfo('Conta criada com sucesso! Enviamos um e-mail com o link de ativação. Por favor, confirme seu e-mail antes de fazer o login.');
+          setAuthInfo('Conta criada com sucesso! Enviamos um e-mail com o link de ativação.');
           showToast('Conta criada! Verifique seu e-mail para confirmar seu acesso.', 'info');
         }
       } else {
+        // Tenta o login direto. Se falhar por credenciais inválidas ou usuário não encontrado, 
+        // e se houver pré-registro ou token de convite na URL, criamos a conta no Auth do Supabase automaticamente.
         try {
           await loginWithEmail(email, password);
         } catch (err: any) {
@@ -223,21 +215,21 @@ export function LoginPage() {
           const errCode = (err.code || '').toLowerCase();
           
           const isCredentialIssue = errCode.includes('user-not-found') || 
-                                   errCode.includes('invalid-credential') || 
-                                   errStr.includes('invalid login credentials') ||
-                                   errStr.includes('invalid_grant') ||
-                                   errStr.includes('user not found');
+                                    errCode.includes('invalid-credential') || 
+                                    errStr.includes('invalid login credentials') ||
+                                    errStr.includes('invalid_grant') ||
+                                    errStr.includes('user not found');
 
-          if (isCredentialIssue) {
-            if (preRegDoc || effectiveRole === 'coordenador_geral') {
-              setAuthInfo('Primeiro acesso detectado. Estamos criando seu ambiente seguro, aguarde...');
-              
-              const effectiveCoordinatorId = sanitizeId(preRegDoc?.coordinatorId) || sanitizeId(urlCoordId) || undefined;
-              const effectiveRegionalCoordId = sanitizeId(preRegDoc?.regionalCoordId) || sanitizeId(urlRegionalCoordId) || undefined;
-              const effectiveTeamId = sanitizeId(preRegDoc?.teamId) || sanitizeId(urlTeamId) || undefined;
-              const effectiveRegion = preRegDoc?.region || urlRegion || '';
-              const shouldForce = preRegDoc?.forcePasswordChange !== false && !preRegDoc?.passwordChangedAt;
+          if (isCredentialIssue || preRegDoc || params.get('access_token')) {
+            setAuthInfo('Configurando acesso e ambiente seguro...');
+            
+            const effectiveCoordinatorId = sanitizeId(preRegDoc?.coordinatorId) || sanitizeId(urlCoordId) || undefined;
+            const effectiveRegionalCoordId = sanitizeId(preRegDoc?.regionalCoordId) || sanitizeId(urlRegionalCoordId) || undefined;
+            const effectiveTeamId = sanitizeId(preRegDoc?.teamId) || sanitizeId(urlTeamId) || undefined;
+            const effectiveRegion = preRegDoc?.region || urlRegion || '';
 
+            // Tenta criar o usuário no Auth caso não exista, e depois faz o login
+            try {
               await signupWithEmail(email, password, effectiveRole, {
                 name: preRegDoc?.name || email.split('@')[0],
                 phone: preRegDoc?.phone || '',
@@ -247,10 +239,11 @@ export function LoginPage() {
                 teamId: effectiveTeamId,
                 coordinatorId: effectiveCoordinatorId,
                 regionalCoordId: effectiveRegionalCoordId,
-                forcePasswordChange: shouldForce
+                forcePasswordChange: false
               });
-            } else {
-              throw err;
+            } catch (signupErr) {
+              // Se já existir no Auth mas a senha estava errada ou houve outro conflito, tenta o login novamente com a senha informada
+              await loginWithEmail(email, password);
             }
           } else {
             throw err;
@@ -348,19 +341,16 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center px-4 py-8 sm:px-6 relative overflow-hidden transition-colors duration-300 selection:bg-blue-600 selection:text-white">
-      {/* Dynamic Ambient Background Highlights */}
       <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-600 via-cyan-500 to-indigo-600"></div>
       <div className="absolute top-1/4 -right-24 w-72 h-72 sm:w-96 sm:h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-1/4 -left-24 w-72 h-72 sm:w-96 sm:h-96 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-      {/* Main Login Card */}
       <motion.div 
         initial={{ opacity: 0, y: 16 }} 
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
         className="w-full max-w-[420px] bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-8 shadow-xl shadow-blue-950/5 relative z-20 backdrop-blur-md"
       >
-        {/* Header / Logo */}
         <div className="text-center space-y-3.5 mb-6">
           <div className="flex justify-center items-center">
             <img 
@@ -389,9 +379,7 @@ export function LoginPage() {
           </div>
         </div>
         
-        {/* Auth Form */}
         <form onSubmit={handleEmailAuth} className="space-y-3.5 text-left">
-          {/* Email Field */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
               E-mail
@@ -414,7 +402,6 @@ export function LoginPage() {
             </div>
           </div>
 
-          {/* Password Field */}
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
               <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
@@ -457,7 +444,6 @@ export function LoginPage() {
             </div>
           </div>
 
-          {/* Info Message (Auto Registration) */}
           {authInfo && (
             <div className="space-y-2 pt-1">
               <p className="text-blue-500 text-xs font-semibold text-center bg-blue-500/10 py-2 px-3 rounded-xl border border-blue-500/20 flex items-center justify-center gap-2">
@@ -467,7 +453,6 @@ export function LoginPage() {
             </div>
           )}
 
-          {/* Error Message */}
           {authError && (
             <div className="space-y-2 pt-1">
               <p className="text-red-500 text-xs font-semibold text-center bg-red-500/10 py-2 px-3 rounded-xl border border-red-500/20">
@@ -498,7 +483,6 @@ export function LoginPage() {
             </div>
           )}
 
-          {/* LGPD Checkbox for Registration */}
           {isRegistering && (
             <div className="pt-2 pb-1">
               <label className="flex items-start gap-2.5 cursor-pointer select-none">
@@ -516,7 +500,6 @@ export function LoginPage() {
             </div>
           )}
 
-          {/* Submit Button */}
           <button 
             type="submit"
             disabled={isLoading || (isRegistering && !acceptedLgpd)}
@@ -533,7 +516,6 @@ export function LoginPage() {
           </button>
         </form>
 
-        {/* Divider */}
         <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-[var(--border-color)]"></div>
@@ -543,7 +525,6 @@ export function LoginPage() {
           </div>
         </div>
 
-        {/* Google Auth Button */}
         <button 
           type="button"
           onClick={handleGoogleAuth}
@@ -558,7 +539,6 @@ export function LoginPage() {
           <span>Google</span>
         </button>
 
-        {/* Footer Nav */}
         <div className="flex items-center justify-between mt-5 pt-3.5 border-t border-[var(--border-color)] text-xs text-[var(--text-secondary)]">
           <button 
             type="button"
@@ -579,11 +559,9 @@ export function LoginPage() {
         </div>
       </motion.div>
       
-      {/* Modal Moderno de Recuperação de Senha */}
       <AnimatePresence>
         {showForgotModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -592,14 +570,12 @@ export function LoginPage() {
               className="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm"
             />
 
-            {/* Modal Card */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               className="relative w-full max-w-[400px] bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-6 sm:p-7 shadow-2xl shadow-blue-950/20 z-10"
             >
-              {/* Close Button */}
               <button 
                 type="button"
                 onClick={() => setShowForgotModal(false)}
@@ -609,7 +585,6 @@ export function LoginPage() {
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Modal Header */}
               <div className="text-center space-y-2 mb-5">
                 <div className="w-12 h-12 bg-blue-600/10 border border-blue-600/20 text-blue-600 rounded-full flex items-center justify-center mx-auto">
                   <KeyRound className="w-6 h-6" />
@@ -622,7 +597,6 @@ export function LoginPage() {
                 </p>
               </div>
 
-              {/* Success View */}
               {forgotSent ? (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -637,10 +611,6 @@ export function LoginPage() {
                     <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
                       Enviamos um link de recuperação para <strong className="text-[var(--text-primary)]">{forgotEmail}</strong>.
                     </p>
-                    <div className="pt-1 text-[10px] text-[var(--text-secondary)] opacity-80 space-y-0.5 border-t border-emerald-500/20">
-                      <p>💡 Dica: Verifique também a pasta de <strong>Spam / Lixo Eletrônico</strong>.</p>
-                      <p>⏱️ O link possui validade temporária por segurança.</p>
-                    </div>
                   </div>
 
                   <div className="flex flex-col gap-2">
@@ -664,7 +634,6 @@ export function LoginPage() {
                   </div>
                 </motion.div>
               ) : (
-                /* Form View */
                 <form onSubmit={handleSendResetPassword} className="space-y-4 text-left">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
@@ -723,7 +692,6 @@ export function LoginPage() {
         )}
       </AnimatePresence>
 
-      {/* Clean Footer Branding */}
       <p className="mt-5 text-[11px] font-medium text-[var(--text-secondary)] opacity-50 tracking-wider">
         Nexus Política • Sistema de Inteligência Eleitoral
       </p>
