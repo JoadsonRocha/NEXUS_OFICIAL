@@ -21,11 +21,12 @@ import {
   Check, 
   Loader2, 
   KeyRound, 
-  Sparkles,
   UserPlus,
   Award,
-  FileText
+  FileText,
+  Cookie
 } from 'lucide-react';
+import { openCookiePreferences } from '../components/common/CookieConsentBanner';
 
 export function ProfilePage() {
   const navigate = useNavigate();
@@ -534,6 +535,23 @@ export function ProfilePage() {
                 >
                   <KeyRound className="w-4 h-4" />
                   Redefinir senha
+                </button>
+              </div>
+
+              {/* PRIVACIDADE E COOKIES */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-3 border-t border-[var(--border-color)]">
+                <div className="space-y-0.5">
+                  <span className="text-xs font-semibold text-[var(--text-primary)] block">Preferências de Cookies & LGPD</span>
+                  <p className="text-xs text-[var(--text-secondary)]">Gerencie suas permissões de cookies essenciais, tema e telemetria.</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={openCookiePreferences}
+                  className="px-4 py-2 rounded-xl bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer shrink-0"
+                >
+                  <Cookie className="w-4 h-4" />
+                  Gerenciar Cookies
                 </button>
               </div>
 

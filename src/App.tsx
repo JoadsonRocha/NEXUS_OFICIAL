@@ -79,6 +79,8 @@ function PublicRegisterWrapper() {
   return <PublicVoterRegister leaderId={leaderId} teamId={teamId} coordinatorId={coordinatorId} />;
 }
 
+import { CookieConsentBanner } from './components/common/CookieConsentBanner';
+
 export default function App() {
   return (
     <>
@@ -111,6 +113,7 @@ export default function App() {
         </Route>
       </Routes>
     </Suspense>
+    <CookieConsentBanner />
     </>
   );
 }

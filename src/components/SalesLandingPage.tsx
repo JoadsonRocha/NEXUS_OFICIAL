@@ -31,13 +31,14 @@ import {
   Database,
   Share2,
   DollarSign,
-  Radio,
   FileSpreadsheet,
-  Headphones
+  Headphones,
+  Cookie
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 import { ASAAS_PLAN_LINKS, COMMERCIAL_WHATSAPP_NUMBER } from '../config/asaasConfig';
 import { trackAdsConversion } from '../utils/gtag';
+import { openCookiePreferences } from './common/CookieConsentBanner';
 
 interface SalesLandingPageProps {
   onAccessSystem: () => void;
@@ -688,6 +689,12 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
           >
             <Headphones className="w-3.5 h-3.5 text-emerald-400" /> Central de Suporte
           </a>
+          <button 
+            onClick={openCookiePreferences} 
+            className="hover:text-amber-400 transition-colors flex items-center gap-1.5 bg-[#0f172a] hover:bg-[#1e293b] px-3.5 py-1.5 rounded-xl border border-white/10 cursor-pointer shadow-xs"
+          >
+            <Cookie className="w-3.5 h-3.5 text-amber-400" /> Preferências de Cookies
+          </button>
         </div>
 
         <p className="text-[10px] text-slate-600 max-w-2xl mx-auto leading-relaxed">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft, Cookie } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { openCookiePreferences } from '../components/common/CookieConsentBanner';
 
 export function CookiesPage() {
   const navigate = useNavigate();
@@ -49,7 +50,16 @@ export function CookiesPage() {
 
             <section className="space-y-3">
               <h2 className="text-lg font-bold text-[var(--text-primary)]">4. Como gerenciar os Cookies</h2>
-              <p>Você pode configurar seu navegador para recusar cookies ou alertá-lo quando eles estiverem sendo enviados. Contudo, observe que ao bloquear cookies essenciais, as funcionalidades de login e os painéis de controle do sistema deixarão de funcionar corretamente.</p>
+              <p>Você pode configurar seu navegador para recusar cookies ou gerenciar suas preferências diretamente no nosso sistema a qualquer momento.</p>
+              
+              <div className="pt-2">
+                <button
+                  onClick={openCookiePreferences}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-blue-600/20 active:scale-95 flex items-center gap-2 cursor-pointer"
+                >
+                  <Cookie className="w-4 h-4" /> Personalizar Minhas Preferências de Cookies
+                </button>
+              </div>
             </section>
           </div>
         </div>
