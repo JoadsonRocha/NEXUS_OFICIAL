@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Cookie, ShieldCheck, Settings2, Check, X, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../lib/SupabaseProvider';
+import { supabaseService } from '../../lib/supabaseService';
 
 export interface CookiePreferences {
   accepted: boolean;
@@ -9,6 +11,8 @@ export interface CookiePreferences {
   analytics: boolean;
   timestamp: string;
   version: string;
+  userAgent?: string;
+  userId?: string;
 }
 
 const STORAGE_KEY = 'nexus_cookie_consent_v1';
@@ -24,7 +28,10 @@ export function getCookieConsent(): CookiePreferences | null {
   }
 }
 
-export function saveCookieConsent(prefs: Partial<CookiePreferences>) {
+/**
+ * Salva as preferências no localStorage e sincroniza com o banco de dados Supabase caso o usuário esteja autenticado.
+ */
+export async function saveCookieConsent(prefs: Partial<CookiePreferences>, userId?: string) {
   const fullConsent: CookiePreferences = {
     accepted: true,
     essential: true,
@@ -32,9 +39,44 @@ export function saveCookieConsent(prefs: Partial<CookiePreferences>) {
     analytics: prefs.analytics ?? true,
     timestamp: new Date().toISOString(),
     version: CURRENT_VERSION,
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+    userId: userId || undefined,
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(fullConsent));
+
+  // 1. Grava no localStorage para leitura instantânea (0ms)
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(fullConsent));
+  } catch (e) {
+    console.warn('Erro ao salvar cookie consent no localStorage:', e);
+  }
+
   window.dispatchEvent(new CustomEvent('nexus_cookie_consent_updated', { detail: fullConsent }));
+
+  // 2. Se houver usuário logado, sincroniza com Supabase para auditoria LGPD
+  if (userId) {
+    try {
+      await supabaseService.setDocument('users', userId, {
+        cookieConsent: {
+          accepted: fullConsent.accepted,
+          essential: fullConsent.essential,
+          preferences: fullConsent.preferences,
+          analytics: fullConsent.analytics,
+          updatedAt: fullConsent.timestamp,
+          version: fullConsent.version,
+        }
+      });
+      // Também registra na coleção de auditoria de consentimento
+      await supabaseService.setDocument('user_consents', `${userId}_cookie_${Date.now()}`, {
+        userId,
+        type: 'cookie_consent',
+        payload: fullConsent,
+        createdAt: Date.now()
+      });
+    } catch (err) {
+      console.warn('Erro ao sincronizar consentimento de cookies no Supabase:', err);
+    }
+  }
+
   return fullConsent;
 }
 
@@ -43,6 +85,7 @@ export function openCookiePreferences() {
 }
 
 export function CookieConsentBanner() {
+  const { user } = useAuth();
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [showPreferences, setShowPreferences] = useState<boolean>(false);
   
@@ -51,17 +94,51 @@ export function CookieConsentBanner() {
   const [prefAnalytics, setPrefAnalytics] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check if consent has already been given
-    const consent = getCookieConsent();
-    if (!consent) {
-      // Small delay to make the entrance smooth and not abrupt
+    // 1. Verifica no localStorage primeiro
+    const localConsent = getCookieConsent();
+
+    if (localConsent) {
+      setPrefTema(localConsent.preferences);
+      setPrefAnalytics(localConsent.analytics);
+      
+      // Se usuário está logado e ainda não sincronizou no Supabase nesta sessão, sincroniza em background
+      if (user?.uid && !localConsent.userId) {
+        saveCookieConsent(localConsent, user.uid).catch(() => {});
+      }
+      return;
+    }
+
+    // 2. Se não tem no localStorage, verifica se o usuário autenticado já possui consentimento gravado no Supabase
+    if (user?.uid) {
+      supabaseService.getDocument<any>('users', user.uid).then(profile => {
+        if (profile?.cookieConsent?.accepted) {
+          const synced: CookiePreferences = {
+            accepted: true,
+            essential: true,
+            preferences: profile.cookieConsent.preferences ?? true,
+            analytics: profile.cookieConsent.analytics ?? true,
+            timestamp: profile.cookieConsent.updatedAt || new Date().toISOString(),
+            version: profile.cookieConsent.version || CURRENT_VERSION,
+            userId: user.uid
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(synced));
+          setPrefTema(synced.preferences);
+          setPrefAnalytics(synced.analytics);
+          return;
+        }
+        // Se realmente não tem, exibe com atraso suave
+        const timer = setTimeout(() => setIsVisible(true), 900);
+        return () => clearTimeout(timer);
+      }).catch(() => {
+        const timer = setTimeout(() => setIsVisible(true), 900);
+        return () => clearTimeout(timer);
+      });
+    } else {
+      // Visitante anônimo
       const timer = setTimeout(() => setIsVisible(true), 900);
       return () => clearTimeout(timer);
-    } else {
-      setPrefTema(consent.preferences);
-      setPrefAnalytics(consent.analytics);
     }
-  }, []);
+  }, [user?.uid]);
 
   useEffect(() => {
     const handleOpenModal = () => {
@@ -79,19 +156,19 @@ export function CookieConsentBanner() {
   }, []);
 
   const handleAcceptAll = () => {
-    saveCookieConsent({ preferences: true, analytics: true });
+    saveCookieConsent({ preferences: true, analytics: true }, user?.uid);
     setIsVisible(false);
     setShowPreferences(false);
   };
 
   const handleAcceptEssentialOnly = () => {
-    saveCookieConsent({ preferences: false, analytics: false });
+    saveCookieConsent({ preferences: false, analytics: false }, user?.uid);
     setIsVisible(false);
     setShowPreferences(false);
   };
 
   const handleSaveCustom = () => {
-    saveCookieConsent({ preferences: prefTema, analytics: prefAnalytics });
+    saveCookieConsent({ preferences: prefTema, analytics: prefAnalytics }, user?.uid);
     setIsVisible(false);
     setShowPreferences(false);
   };
