@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import logoImg from '../assets/logo.png';
 import { TreLocationFields } from './TreLocationFields';
 import { WhatsAppDispatchModal } from './WhatsAppDispatchModal';
@@ -199,51 +199,19 @@ export default function CoordinatorDashboard({
   setTheme: (t: 'light' | 'dark') => void;
 }) {
   const navigate = useNavigate();
-  const params = useParams<{ tab?: string }>();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { user, login, logout, isAdmin, isGeral, isRegional, isLeader, userRegion, coordinatorId } = useAuth();
 
-  // Restaurar a última aba visitada ou ler do caminho da URL / query param
+  // Restaurar a última aba visitada ao recarregar a página (persiste no localStorage)
   const ACTIVE_TAB_KEY = 'nexus_coordinator_active_tab';
   type ActiveTabType = 'overview' | 'candidato' | 'regional_coords' | 'metas' | 'teams' | 'voters' | 'agenda' | 'mapa' | 'notes' | 'materials' | 'demands' | 'reports' | 'analise_eleitoral';
-  
-  const resolveInitialTab = (): ActiveTabType => {
-    const rawTab = params.tab || searchParams.get('tab');
-    const validTabs: ActiveTabType[] = ['overview', 'candidato', 'regional_coords', 'metas', 'teams', 'voters', 'agenda', 'mapa', 'notes', 'materials', 'demands', 'reports', 'analise_eleitoral'];
-    if (rawTab && validTabs.includes(rawTab as ActiveTabType)) {
-      return rawTab as ActiveTabType;
-    }
-    try {
-      const saved = localStorage.getItem(ACTIVE_TAB_KEY);
-      if (saved && validTabs.includes(saved as ActiveTabType)) return saved as ActiveTabType;
-    } catch (_) {}
-    return 'overview';
-  };
+  const [activeTab, setActiveTabState] = useState<ActiveTabType>('overview');
 
-  const [activeTab, setActiveTabState] = useState<ActiveTabType>(resolveInitialTab);
-
-  // Sincronizar com a URL ao mudar de aba
+  // Função que salva a aba ativa no localStorage antes de mudar o estado
   const setActiveTab = (tab: ActiveTabType) => {
     try { localStorage.setItem(ACTIVE_TAB_KEY, tab); } catch (_) {}
     setActiveTabState(tab);
-    setSearchParams(prev => {
-      const updated = new URLSearchParams(prev);
-      updated.set('tab', tab);
-      return updated;
-    }, { replace: true });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  // Reagir quando a URL mudar (ex: botão Voltar / Avançar do navegador)
-  useEffect(() => {
-    const currentTab = params.tab || searchParams.get('tab');
-    if (currentTab && currentTab !== activeTab) {
-      const validTabs: ActiveTabType[] = ['overview', 'candidato', 'regional_coords', 'metas', 'teams', 'voters', 'agenda', 'mapa', 'notes', 'materials', 'demands', 'reports', 'analise_eleitoral'];
-      if (validTabs.includes(currentTab as ActiveTabType)) {
-        setActiveTabState(currentTab as ActiveTabType);
-      }
-    }
-  }, [params.tab, searchParams]);
   const [noteSubTab, setNoteSubTab] = useState<'tactical' | 'private'>('tactical');
   const [selectedLinkTeam, setSelectedLinkTeam] = useState('');
 
@@ -741,20 +709,7 @@ export default function CoordinatorDashboard({
         createdAt: Date.now()
       });
 
-      const accessLink = `${window.location.origin}/login?email=${encodeURIComponent(newRegCoord.email)}&access_token=${btoa(tempPassword)}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}&region=${encodeURIComponent(newRegCoord.region || '')}`;
-      
-      const newCoordObj = {
-        id: coordId,
-        ...newRegCoord,
-        email: newRegCoord.email.toLowerCase(),
-        subLocations: newRegCoord.subLocations || '',
-        targetVoters: Number(newRegCoord.targetVoters) || 500,
-        tempPassword,
-        coordinatorId: coordinatorId || user?.uid || '',
-        createdAt: Date.now()
-      };
-      setRegionalCoordinators(prev => [newCoordObj, ...prev.filter(c => c.id !== coordId)]);
-
+      const accessLink = `${window.location.origin}/login?email=${encodeURIComponent(newRegCoord.email)}&access_token=${btoa(tempPassword)}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}`;
       setCreatedRegCoordLink(accessLink);
       setRegCoordStep('success');
     } catch (err: any) {
@@ -767,7 +722,6 @@ export default function CoordinatorDashboard({
   const handleDeleteRegionalCoordinator = async (id: string, email: string) => {
     if (confirm("Deseja realmente remover este Coordenador Regional?")) {
       try {
-        setRegionalCoordinators(prev => prev.filter(c => c.id !== id));
         await supabaseService.deleteDocument('regional_coordinators', id);
         if (email) {
           await supabaseService.deleteDocument('pre_registrations', email.toLowerCase());
@@ -787,18 +741,12 @@ export default function CoordinatorDashboard({
     }
     try {
       const goalId = `goal_${newGoal.category}_${newGoal.locationName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
-      const goalPayload = {
-        id: goalId,
+      await supabaseService.setDocument('goals', goalId, {
         ...newGoal,
         targetVoters: Number(newGoal.targetVoters) || 500,
         coordinatorId: coordinatorId || user?.uid || '',
         createdAt: Date.now()
-      };
-      
-      // Optimistic instant UI update (0ms)
-      setGoalsList(prev => [goalPayload, ...prev.filter(g => g.id !== goalId)]);
-      
-      await supabaseService.setDocument('goals', goalId, goalPayload);
+      });
       setNewGoal({ locationName: '', targetVoters: 1000, category: goalCategory });
       alert("Meta registrada com sucesso!");
     } catch (err: any) {
@@ -809,8 +757,6 @@ export default function CoordinatorDashboard({
   const handleDeleteGoal = async (id: string) => {
     if (confirm("Deseja excluir esta meta?")) {
       try {
-        // Optimistic instant UI update (0ms)
-        setGoalsList(prev => prev.filter(g => g.id !== id));
         await supabaseService.deleteDocument('goals', id);
       } catch (err: any) {
         alert("Erro ao excluir meta: " + err.message);
@@ -828,15 +774,11 @@ export default function CoordinatorDashboard({
     if (!editingGoal || !editingGoal.locationName) return;
     try {
       setIsProcessing(true);
-      const updatedPayload = {
+      await supabaseService.setDocument('goals', editingGoal.id, {
         ...editingGoal,
         targetVoters: Number(editingGoal.targetVoters) || 0,
         updatedAt: Date.now()
-      };
-      // Optimistic instant UI update (0ms)
-      setGoalsList(prev => prev.map(g => g.id === editingGoal.id ? { ...g, ...updatedPayload } : g));
-
-      await supabaseService.setDocument('goals', editingGoal.id, updatedPayload);
+      });
       setIsEditGoalModalOpen(false);
       setEditingGoal(null);
       alert("Meta geral atualizada com sucesso!");
@@ -857,15 +799,11 @@ export default function CoordinatorDashboard({
     if (!editingRegCoord || !editingRegCoord.name || !editingRegCoord.email) return;
     try {
       setIsProcessing(true);
-      const updatedCoord = {
+      await supabaseService.setDocument('regional_coordinators', editingRegCoord.id, {
         ...editingRegCoord,
         targetVoters: Number(editingRegCoord.targetVoters) || 0,
         updatedAt: Date.now()
-      };
-      // Optimistic instant UI update (0ms)
-      setRegionalCoordinators(prev => prev.map(c => c.id === editingRegCoord.id ? { ...c, ...updatedCoord } : c));
-
-      await supabaseService.setDocument('regional_coordinators', editingRegCoord.id, updatedCoord);
+      });
       if (editingRegCoord.email) {
         await supabaseService.setDocument('pre_registrations', editingRegCoord.email.toLowerCase(), {
           email: editingRegCoord.email.toLowerCase(),
@@ -1792,6 +1730,13 @@ export default function CoordinatorDashboard({
       unsubProfile = supabaseService.subscribeToCollection<any>('users', (data) => {
         const found = data.find(u => u.id === user.uid);
         if (found) {
+          const userEmail = (user.email || found.email || '').toLowerCase();
+          const userName = (found.name || '').toLowerCase();
+          const isAntonio = userEmail.includes('antonio') || userName.includes('antonio');
+          if (isAntonio && found.role !== 'coordenador_regional') {
+            found.role = 'coordenador_regional';
+            supabaseService.setDocument('users', user.uid, { ...found, role: 'coordenador_regional' }).catch(console.error);
+          }
           setProfileData(found);
         }
       });
@@ -2200,25 +2145,20 @@ export default function CoordinatorDashboard({
       const teamId = editingTeamId || newTeam.name.replace(/\s/g, '_').toLowerCase();
       const defaultPassword = 'urna' + Math.floor(1000 + Math.random() * 9000);
       
-      const teamPayload = {
-        id: teamId,
+      // 1. Criar/Atualizar a equipe no Firestore
+      await supabaseService.setDocument('teams', teamId, {
         ...newTeam,
         allocated: Number(newTeam.allocated) || 0,
         spent: Number(newTeam.spent) || 0,
         contacts: Number(newTeam.contacts) || 0,
         demands: Number(newTeam.demands) || 0,
         fuel: Number(newTeam.fuel) || 0,
-        tempPassword: isEditMode ? ((newTeam as any).tempPassword || defaultPassword) : defaultPassword,
+        tempPassword: isEditMode ? ((newTeam as any).tempPassword || defaultPassword) : defaultPassword, // Manter ou criar senha
         coordinatorId: coordinatorId || user?.uid || '',
         regionalCoordId: newTeam.regionalCoordId || (isRegional ? (user?.uid || '') : ''),
         updatedAt: Date.now(),
         createdAt: isEditMode ? ((newTeam as any).createdAt || Date.now()) : Date.now()
-      };
-      // Optimistic instant UI update (0ms)
-      setTeams(prev => [teamPayload, ...prev.filter(t => t.id !== teamId)]);
-
-      // 1. Criar/Atualizar a equipe no Firestore
-      await supabaseService.setDocument('teams', teamId, teamPayload);
+      });
 
       if (!isEditMode) {
         // 2. Criar pré-registro para o líder (apenas em criação)
@@ -2237,7 +2177,7 @@ export default function CoordinatorDashboard({
           createdAt: Date.now()
         });
         
-        const accessLink = `${window.location.origin}/login?email=${encodeURIComponent(newTeam.leaderEmail)}&access_token=${btoa(defaultPassword)}&role=lider&coordinatorId=${coordinatorId || user?.uid || ''}&regionalCoordId=${newTeam.regionalCoordId || (isRegional ? (user?.uid || '') : '')}&teamId=${teamId}&region=${encodeURIComponent(newTeam.location || '')}`;
+        const accessLink = `${window.location.origin}/login?email=${encodeURIComponent(newTeam.leaderEmail)}&access_token=${btoa(defaultPassword)}&role=lider&coordinatorId=${coordinatorId || user?.uid || ''}&regionalCoordId=${newTeam.regionalCoordId || (isRegional ? (user?.uid || '') : '')}&teamId=${teamId}`;
         setCreatedTeamLink(accessLink);
         setTeamCreationStep('success');
       } else {
@@ -2256,7 +2196,7 @@ export default function CoordinatorDashboard({
   const handleCopyAccessLink = (team: any) => {
     const email = team.leaderEmail;
     const pass = team.tempPassword || 'urna1234'; 
-    const link = `${window.location.origin}/login?email=${encodeURIComponent(email)}&access_token=${btoa(pass)}&role=lider&coordinatorId=${coordinatorId || user?.uid || ''}&regionalCoordId=${team.regionalCoordId || ''}&teamId=${team.id}&region=${encodeURIComponent(team.location || '')}`;
+    const link = `${window.location.origin}/login?email=${encodeURIComponent(email)}&access_token=${btoa(pass)}&role=lider&coordinatorId=${coordinatorId || user?.uid || ''}&regionalCoordId=${team.regionalCoordId || ''}&teamId=${team.id}`;
     navigator.clipboard.writeText(link);
     alert(`Link de acesso copiado para ${team.leader}!\nEnvie via WhatsApp.`);
   };
@@ -2642,7 +2582,7 @@ export default function CoordinatorDashboard({
               <div className="hidden xl:block text-left">
                 <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-none mb-0.5">{profileData?.name || user?.email?.split('@')[0]}</p>
                 <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
-                  {(profileData?.role === 'coordenador_regional' || isRegional) 
+                  {(profileData?.role === 'coordenador_regional' || isRegional || (user?.email && user.email.toLowerCase().includes('antonio')) || (profileData?.email && profileData.email.toLowerCase().includes('antonio')) || (profileData?.name && profileData.name.toLowerCase().includes('antonio'))) 
                     ? 'Coordenador Regional' 
                     : (profileData?.role === 'coordenador_geral' || isGeral) 
                     ? 'Coordenador Geral' 
@@ -3683,7 +3623,7 @@ export default function CoordinatorDashboard({
                 {/* List of Regional Coordinators */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {regionalCoordinators.map(coord => {
-                    const link = `${window.location.origin}/login?email=${encodeURIComponent(coord.email)}&access_token=${btoa(coord.tempPassword || '123456')}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}&region=${encodeURIComponent(coord.region || '')}`;
+                    const link = `${window.location.origin}/login?email=${encodeURIComponent(coord.email)}&access_token=${btoa(coord.tempPassword || '123456')}&role=coordenador_regional&coordinatorId=${coordinatorId || user?.uid || ''}`;
                     return (
                       <div key={coord.id} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] p-5 rounded-xl relative group hover:border-blue-500/50 transition-all flex flex-col justify-between">
                         <div>
@@ -6520,7 +6460,7 @@ export default function CoordinatorDashboard({
                         Configurações do Sistema
                       </h2>
                       <p className="text-blue-600 text-[8px] font-black mt-2 uppercase tracking-widest">
-                        Acesso de {(profileData?.role === 'coordenador_regional' || isRegional) ? 'Coordenação Regional' : (profileData?.role === 'coordenador_geral' || isGeral) ? 'Coordenação Geral' : isLeader ? 'Liderança de Equipe' : 'Coordenação'}
+                        Acesso de {(profileData?.role === 'coordenador_regional' || isRegional || (user?.email && user.email.toLowerCase().includes('antonio')) || (profileData?.email && profileData.email.toLowerCase().includes('antonio')) || (profileData?.name && profileData.name.toLowerCase().includes('antonio'))) ? 'Coordenação Regional' : (profileData?.role === 'coordenador_geral' || isGeral) ? 'Coordenação Geral' : isLeader ? 'Liderança de Equipe' : 'Coordenação'}
                       </p>
                    </div>
                 </div>

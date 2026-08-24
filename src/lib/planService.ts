@@ -22,31 +22,31 @@ export const PLAN_CONFIGS: Record<PlanType, {
   maxGeneralCoordinators: number;
 }> = {
   free: {
-    name: 'Degustação de Campo (14 Dias Grátis)',
-    price: 'Grátis (14 dias)',
+    name: 'Degustação de Campo',
+    price: 'R$ 0 (14 Dias)',
     maxVoters: 100,
     maxLeaders: 5,
     maxRegionals: 2,
     maxGeneralCoordinators: 1,
   },
   start: {
-    name: 'Plano Municipal Tático',
-    price: 'R$ 397,97/mês',
+    name: 'Municipal Tático',
+    price: 'R$ 597,97/mês',
     maxVoters: 5000,
     maxLeaders: 50,
     maxRegionals: 10,
     maxGeneralCoordinators: 1,
   },
   comando: {
-    name: 'Plano Estadual Estratégico',
-    price: 'R$ 697,97/mês',
+    name: 'Estadual Estratégico',
+    price: 'R$ 997,97/mês',
     maxVoters: 30000,
     maxLeaders: 250,
     maxRegionals: 50,
     maxGeneralCoordinators: 1,
   },
   dominio: {
-    name: 'Plano Nacional Soberano',
+    name: 'Nacional Soberano',
     price: 'R$ 1.497,97/mês',
     maxVoters: Infinity,
     maxLeaders: Infinity,
@@ -242,7 +242,7 @@ export async function validateLeaderRegistration(coordinatorId?: string): Promis
   }
 
   if (!sub.maxLeaders || sub.maxLeaders === Infinity || sub.plan === 'dominio') {
-    return { allowed: true, planName: PLAN_CONFIGS[sub.plan]?.name || 'Plano Domínio' };
+    return { allowed: true, planName: PLAN_CONFIGS[sub.plan]?.name || 'Plano Nacional Soberano' };
   }
 
   try {
@@ -287,7 +287,7 @@ export async function validateRegionalRegistration(coordinatorId?: string): Prom
   }
 
   if (!sub.maxRegionals || sub.maxRegionals === Infinity || sub.plan === 'dominio') {
-    return { allowed: true, planName: PLAN_CONFIGS[sub.plan]?.name || 'Plano Domínio' };
+    return { allowed: true, planName: PLAN_CONFIGS[sub.plan]?.name || 'Plano Nacional Soberano' };
   }
 
   try {
@@ -331,16 +331,6 @@ export async function validateGeneralCoordinatorRegistration(): Promise<{
   try {
     const users = await supabaseService.getCollection<any>('users');
     const totalGeneral = users.filter(u => u.role === 'coordenador_geral' || u.role === 'coordenador').length;
-
-    // Como cada cadastro orgânico inicia uma nova campanha, não limitamos a criação
-    // de novos Coordenadores Gerais no momento do registro.
-    // (Limitações de plano se aplicam à criação de *outros* usuários dentro da campanha)
-    return {
-      allowed: true,
-      currentCount: totalGeneral,
-      limit: sub.maxGeneralCoordinators,
-      planName: PLAN_CONFIGS[sub.plan].name,
-    };
 
     return {
       allowed: true,
