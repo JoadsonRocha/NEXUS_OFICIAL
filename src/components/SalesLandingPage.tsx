@@ -100,26 +100,21 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
 
       {/* HERO SECTION */}
       <section className="relative px-4 md:px-8 pt-12 pb-16 md:pt-16 md:pb-20 max-w-6xl mx-auto text-center space-y-6 overflow-hidden">
-        {/* Glows */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 md:w-[650px] h-96 md:h-[650px] bg-blue-600/15 rounded-full blur-[150px] pointer-events-none"></div>
 
-        {/* Badge de Destaque */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold tracking-wide">
           <HeartHandshake className="w-4 h-4 text-emerald-400" />
           A Plataforma Completa de Inteligência, Mobilização e Controle de Votos
         </div>
 
-        {/* Título Principal */}
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-100 tracking-tight leading-tight max-w-4xl mx-auto">
           Transforme apoio de rua em <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400">votos confirmados</span> na urna
         </h1>
 
-        {/* Subtítulo Humanizado */}
         <p className="text-slate-300 text-sm sm:text-base md:text-lg max-w-3xl mx-auto leading-relaxed font-normal">
           O <strong>Nexus Política</strong> é o centro de comando completo para candidatos e coordenadores que querem liderar com organização. Conecte sua coordenação geral, seus líderes de bairro e seus apoiadores em um sistema leve, rápido e 100% no celular.
         </p>
 
-        {/* Botões de Ação */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <button
             onClick={onAccessSystem}
@@ -137,7 +132,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
           </a>
         </div>
 
-        {/* Destaques Rápidos */}
         <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
           <div className="p-4 rounded-2xl bg-[#0f172a]/80 border border-white/10 backdrop-blur-sm shadow-sm">
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-black uppercase mb-1">
@@ -177,7 +171,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
         </div>
       </section>
 
-      {/* SEÇÃO: O QUE É O NEXUS POLÍTICA (EXPLICAÇÃO CLARA) */}
+      {/* SEÇÃO: O QUE É O NEXUS POLÍTICA */}
       <section className="px-4 md:px-8 py-16 bg-[#0f172a]/50 border-y border-white/10">
         <div className="max-w-5xl mx-auto space-y-8">
           <div className="text-center space-y-2">
@@ -241,8 +235,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          
-          {/* Card 1: Mapa de Calor */}
           <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-blue-500/50 transition-all space-y-3 shadow-sm">
             <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
               <Map className="w-6 h-6" />
@@ -253,7 +245,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             </p>
           </div>
 
-          {/* Card 2: WhatsApp wa.me */}
           <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-emerald-500/50 transition-all space-y-3 shadow-sm">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
               <MessageSquare className="w-6 h-6" />
@@ -264,7 +255,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             </p>
           </div>
 
-          {/* Card 3: 3 Níveis de Hierarquia */}
           <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-amber-500/50 transition-all space-y-3 shadow-sm">
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <Layers className="w-6 h-6" />
@@ -275,7 +265,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             </p>
           </div>
 
-          {/* Card 4: Metas em Tempo Real */}
           <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-indigo-500/50 transition-all space-y-3 shadow-sm">
             <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
               <TrendingUp className="w-6 h-6" />
@@ -286,7 +275,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             </p>
           </div>
 
-          {/* Card 5: Dados Históricos do TRE */}
           <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-purple-500/50 transition-all space-y-3 shadow-sm">
             <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
               <FileSpreadsheet className="w-6 h-6" />
@@ -297,7 +285,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             </p>
           </div>
 
-          {/* Card 6: Logística & Materiais */}
           <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-blue-500/50 transition-all space-y-3 shadow-sm">
             <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
               <Package className="w-6 h-6" />
@@ -308,7 +295,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             </p>
           </div>
 
-          {/* Card 7: Ordem do Dia */}
           <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-amber-500/50 transition-all space-y-3 shadow-sm">
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <Radio className="w-6 h-6" />
@@ -319,7 +305,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             </p>
           </div>
 
-          {/* Card 8: Link Público de Apoio */}
           <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-emerald-500/50 transition-all space-y-3 shadow-sm">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
               <Share2 className="w-6 h-6" />
@@ -330,7 +315,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             </p>
           </div>
 
-          {/* Card 9: Financeiro & TSE */}
           <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 hover:border-indigo-500/50 transition-all space-y-3 shadow-sm">
             <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
               <DollarSign className="w-6 h-6" />
@@ -340,14 +324,12 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               Gestão de entradas, saídas, comprovantes e emissão de relatórios contábeis para facilitar a prestação de contas no sistema oficial do TSE.
             </p>
           </div>
-
         </div>
       </section>
 
       {/* CALCULADORA DE ALCANCE ELEITORAL */}
       <section className="px-4 md:px-8 py-16 max-w-5xl mx-auto space-y-8">
         <div className="p-6 md:p-10 rounded-3xl bg-gradient-to-b from-[#0f172a] to-[#090d16] border border-blue-500/30 space-y-8 shadow-2xl">
-          
           <div className="flex items-center gap-3 text-blue-400 font-black text-xs uppercase tracking-wider">
             <Calculator className="w-5 h-5" />
             Simulador de Mobilização de Equipe
@@ -363,7 +345,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
-            {/* Controles */}
             <div className="space-y-6">
               <div className="space-y-2">
                 <div className="flex justify-between text-xs font-bold">
@@ -397,7 +378,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </div>
             </div>
 
-            {/* Resultado Estimado */}
             <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 flex flex-col justify-center text-center space-y-3 shadow-inner">
               <span className="text-xs uppercase font-black tracking-widest text-slate-400">
                 Eleitores Conectados Diretamente
@@ -413,7 +393,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
         </div>
       </section>
 
-      {/* PLANOS E VALORES */}
+      {/* PLANOS E VALORES ATUALIZADOS */}
       <section id="planos" className="px-4 md:px-8 py-16 bg-[#0f172a]/40 border-t border-white/10">
         <div className="max-w-6xl mx-auto space-y-12">
           
@@ -431,13 +411,13 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
             
-            {/* Plano 0: Degustação 14 Dias Grátis */}
+            {/* Plano 0: Degustação de Campo */}
             <div className="p-6 rounded-2xl bg-[#0f172a] border border-emerald-500/40 flex flex-col justify-between space-y-6 shadow-md">
               <div className="space-y-4">
-                <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">14 Dias Grátis</span>
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Teste de Campo</span>
                 <h3 className="text-xl font-black text-slate-100">Degustação de Campo</h3>
                 <div className="text-3xl font-black text-emerald-400">
-                  R$ 0 <span className="text-xs text-slate-400 font-normal">/14 dias de teste</span>
+                  R$ 0 <span className="text-xs text-slate-400 font-normal">(14 Dias)</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-800/40 text-[11px] text-emerald-200 font-medium">
                   Teste o sistema completo na rua com sua coordenação e líderes antes de investir.
@@ -447,10 +427,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                     <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 100 Eleitores Cadastrados
                   </li>
                   <li className="flex items-center gap-2 font-bold text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 5 Líderes de Equipe
-                  </li>
-                  <li className="flex items-center gap-2 font-bold text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 2 Coordenadores Regionais
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 5 Líderes + 2 Regionais
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Mapa de Calor & Metas
@@ -473,10 +450,10 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
             {/* Plano 1: Municipal Tático */}
             <div className="p-6 rounded-2xl bg-[#0f172a] border border-white/10 flex flex-col justify-between space-y-6 shadow-md">
               <div className="space-y-4">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Vereador & Prefeituras</span>
-                <h3 className="text-xl font-black text-slate-100">Plano Municipal</h3>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Vereador / Prefeituras</span>
+                <h3 className="text-xl font-black text-slate-100">Municipal Tático</h3>
                 <div className="text-3xl font-black text-slate-100">
-                  R$ 397,97 <span className="text-xs text-slate-400 font-normal">/mês</span>
+                  R$ 597,97 <span className="text-xs text-slate-400 font-normal">/mês</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#090d16] border border-white/10 text-[11px] text-slate-300 font-medium">
                   Excelente para campanhas municipais de vereador, bairros e cidades do interior.
@@ -486,10 +463,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                     <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 5.000 Eleitores Cadastrados
                   </li>
                   <li className="flex items-center gap-2 font-bold text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 50 Líderes de Equipe
-                  </li>
-                  <li className="flex items-center gap-2 font-bold text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 10 Coordenadores Regionais
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 50 Líderes + 10 Regionais
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Metas por Bairro & Demandas
@@ -501,13 +475,13 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </div>
 
               <a
-                href={ASAAS_PLAN_LINKS.startTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Municipal%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.startTatico}
+                href={ASAAS_PLAN_LINKS.startTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Municipal%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.startTatico}
                 target="_blank"
                 rel="noreferrer"
-                onClick={() => trackAdsConversion(397.97)}
+                onClick={() => trackAdsConversion(597.97)}
                 className="w-full py-3 rounded-xl bg-[#1e293b] hover:bg-slate-700 text-slate-100 font-bold text-xs text-center block transition-all active:scale-95 border border-white/10"
               >
-                Contratar Plano Municipal
+                Contratar Municipal Tático
               </a>
             </div>
 
@@ -518,10 +492,10 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </div>
 
               <div className="space-y-4 pt-2">
-                <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Dep. Estadual & Capitais</span>
-                <h3 className="text-xl font-black text-slate-100">Plano Estadual</h3>
+                <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Dep. Estadual / Capitais</span>
+                <h3 className="text-xl font-black text-slate-100">Estadual Estratégico</h3>
                 <div className="text-3xl font-black text-slate-100">
-                  R$ 697,97 <span className="text-xs text-slate-400 font-normal">/mês</span>
+                  R$ 997,97 <span className="text-xs text-slate-400 font-normal">/mês</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-blue-950/40 border border-blue-800/50 text-[11px] text-blue-200 font-medium">
                   Estrutura de alta capacidade para campanhas estaduais com polos em vários municípios.
@@ -531,10 +505,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                     <CheckCircle2 className="w-4 h-4 shrink-0" /> Até 30.000 Eleitores Cadastrados
                   </li>
                   <li className="flex items-center gap-2 font-bold text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 250 Líderes de Equipe
-                  </li>
-                  <li className="flex items-center gap-2 font-bold text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 50 Coordenadores Regionais
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Até 250 Líderes + 50 Regionais
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Cruzamento Histórico do TRE
@@ -546,33 +517,33 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </div>
 
               <a
-                href={ASAAS_PLAN_LINKS.comandoTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Estadual%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.comandoTatico}
+                href={ASAAS_PLAN_LINKS.comandoTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Estadual%20Estrat%C3%A9gico%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.comandoTatico}
                 target="_blank"
                 rel="noreferrer"
-                onClick={() => trackAdsConversion(697.97)}
+                onClick={() => trackAdsConversion(997.97)}
                 className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/30 transition-all active:scale-95"
               >
-                Garantir Plano Estadual
+                Garantir Estadual Estratégico
               </a>
             </div>
 
             {/* Plano 3: Nacional Soberano */}
             <div className="p-6 rounded-2xl bg-[#0f172a] border border-amber-500/40 flex flex-col justify-between space-y-6 shadow-md">
               <div className="space-y-4">
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Dep. Federal & Majoritárias</span>
-                <h3 className="text-xl font-black text-slate-100">Plano Nacional</h3>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Dep. Federal / Majoritárias</span>
+                <h3 className="text-xl font-black text-slate-100">Nacional Soberano</h3>
                 <div className="text-3xl font-black text-white">
-                  R$ 1.497,97 <span className="text-xs text-slate-400 font-normal">/mês</span>
+                  R$ 1.497,97 <span className="text-xs text-slate-400 font-normal">/ mês</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-amber-950/30 border border-amber-800/40 text-[11px] text-amber-200 font-medium">
                   Para operações de grande porte, chapas majoritárias, federais e partidos.
                 </div>
                 <ul className="space-y-2.5 text-xs text-slate-300">
                   <li className="flex items-center gap-2 font-bold text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" /> Eleitores Cadastrados Ilimitados
+                    <CheckCircle2 className="w-4 h-4 shrink-0" /> ILIMITADO (Eleitores)
                   </li>
                   <li className="flex items-center gap-2 font-bold text-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Líderes e Regionais Ilimitados
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> ILIMITADOS (Equipes de Rua)
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Relatórios SPCE para o TSE
@@ -580,20 +551,17 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Servidor Dedicado & Alta Performance
                   </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Consultor Estratégico Exclusivo
-                  </li>
                 </ul>
               </div>
 
               <a
-                href={ASAAS_PLAN_LINKS.dominioTotal.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Nacional%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.dominioTotal}
+                href={ASAAS_PLAN_LINKS.dominioTotal.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Nacional%20Soberano%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.dominioTotal}
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => trackAdsConversion(1497.97)}
                 className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs text-center block transition-all active:scale-95 shadow-lg shadow-amber-600/20"
               >
-                Contratar Plano Nacional
+                Contratar Nacional Soberano
               </a>
             </div>
 
@@ -683,7 +651,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
       {/* FOOTER */}
       <footer className="border-t border-white/10 py-10 px-4 text-center text-xs text-slate-500 space-y-4 bg-[#090d16]">
         <p className="font-semibold text-slate-300">Nexus Política &bull; Tecnologia com Propósito Humano para Campanhas Vitoriosas</p>
-        
+         
         <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 text-[11px] font-medium text-slate-400">
           <button 
             onClick={() => setShowLegalModal('refund')} 
@@ -721,7 +689,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="bg-[#0f172a] border border-white/10 max-w-3xl w-full rounded-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl">
             
-            {/* CABEÇALHO */}
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div className="flex items-center gap-2.5">
                 <ShieldCheck className="w-6 h-6 text-emerald-400" />
@@ -735,7 +702,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </button>
             </div>
 
-            {/* ABAS */}
             <div className="flex items-center gap-2 border-b border-white/10 pb-2 overflow-x-auto">
               <button
                 onClick={() => setShowLegalModal('refund')}
@@ -771,7 +737,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </button>
             </div>
 
-            {/* CONTEÚDO */}
             <div className="text-xs text-slate-300 space-y-4 leading-relaxed">
               {showLegalModal === 'refund' && (
                 <div className="space-y-4 animate-in fade-in">
@@ -796,7 +761,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                   <div className="p-4 bg-blue-950/30 border border-blue-500/30 rounded-xl space-y-2">
                     <h4 className="font-bold text-blue-300 text-sm flex items-center gap-2">
                       <Lock className="w-4 h-4 text-blue-400" />
-                      Privacidade dos Dados e Conformidade com a LGPD
+                      Privacidad dos Dados e Conformidade com a LGPD
                     </h4>
                     <p className="text-slate-300">
                       Os dados da sua campanha são seus. O Nexus Política não compartilha, não aluga e não comercializa nenhuma informação com terceiros.
@@ -820,7 +785,6 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               )}
             </div>
 
-            {/* RODAPÉ DO MODAL */}
             <div className="pt-4 border-t border-white/10 flex items-center justify-end">
               <button
                 onClick={() => setShowLegalModal(null)}
