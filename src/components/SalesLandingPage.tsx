@@ -567,7 +567,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
 
           </div>
 
-          {/* AVISO DE CONTRATAÇÃO VIA PIX E LIBERAÇÃO MANUAL (ÁREA SOLICITADA) */}
+          {/* AVISO DE CONTRATAÇÃO VIA PIX E LIBERAÇÃO MANUAL */}
           <div className="mt-8 bg-gradient-to-r from-blue-950/60 via-[#0f172a] to-emerald-950/60 border border-blue-500/30 rounded-2xl p-5 md:p-6 text-center max-w-4xl mx-auto shadow-lg space-y-2">
             <h4 className="text-sm md:text-base font-black text-slate-100 flex items-center justify-center gap-2">
               <Zap className="w-4 h-4 text-amber-400" />
@@ -768,14 +768,43 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               )}
 
               {showLegalModal === 'terms' && (
-                <div className="space-y-4 animate-in fade-in">
+                <div className="space-y-4 animate-in fade-in text-slate-300 text-xs leading-relaxed">
                   <div className="p-4 bg-blue-950/30 border border-blue-500/30 rounded-xl space-y-2">
                     <h4 className="font-bold text-blue-300 text-sm flex items-center gap-2">
                       <Lock className="w-4 h-4 text-blue-400" />
-                      Privacidade dos Dados e Conformidade com a LGPD
+                      1. Privacidade, Tratamento e Segurança de Dados (LGPD)
                     </h4>
-                    <p className="text-slate-300">
-                      Os dados da sua campanha são seus. O Nexus Política não compartilha, não aluga e não comercializa nenhuma informação com terceiros.
+                    <p>
+                      Em conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018)</strong>, o <strong>Nexus Política</strong> atua estritamente como fornecedor de infraestrutura tecnológica (operador de software). Os dados de eleitores, simpatizantes e equipes inseridos na plataforma são de propriedade exclusiva, responsabilidade e controle do candidato ou da coordenação contratante (controlador dos dados). A plataforma não comercializa, aluga ou cede informações a terceiros.
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-slate-900/60 border border-white/10 rounded-xl space-y-2">
+                    <h4 className="font-bold text-slate-100 text-sm flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-amber-400" />
+                      2. Isenção Absoluta de Responsabilidade por Uso Indevido
+                    </h4>
+                    <p>
+                      O <strong>Nexus Política</strong> é uma ferramenta lícita voltada exclusivamente para a organização logística, gestão de equipes de rua e comunicação voluntária. <strong>A plataforma isenta-se de qualquer responsabilidade civil, administrativa ou criminal</strong> decorrente do uso inadequado, abusivo ou ilegal perpetrado pelo contratante, operadores, coordenadores ou líderes de campanha.
+                    </p>
+                    <p>
+                      Constituem infrações de responsabilidade exclusiva do usuário, eximindo a plataforma de qualquer coautoria ou solidariedade:
+                    </p>
+                    <ul className="list-disc pl-5 space-y-1 text-slate-400">
+                      <li>Prática de captação ilícita de sufrágio (popularmente conhecida como "compra de votos").</li>
+                      <li>Prática de boca de urna, transporte irregular de eleitores ou aliciamento no dia do pleito.</li>
+                      <li>Disparos em massa abusivos, spam ou violação das políticas de uso das redes sociais e aplicativos de mensagens.</li>
+                      <li>Inserção de dados falsos, cadastros de eleitores sem consentimento ou violação das normativas da Justiça Eleitoral e do Tribunal Superior Eleitoral (TSE).</li>
+                    </ul>
+                  </div>
+
+                  <div className="p-4 bg-slate-900/60 border border-white/10 rounded-xl space-y-2">
+                    <h4 className="font-bold text-slate-100 text-sm flex items-center gap-2">
+                      <Scale className="w-4 h-4 text-blue-400" />
+                      3. Obrigações do Contratante e Conformidade Eleitoral
+                    </h4>
+                    <p>
+                      Ao utilizar o sistema, o contratante declara integral ciência de que é o único responsável perante o Ministério Público Eleitoral, o TRE, o TSE e os titulares dos dados pela licitude do tratamento das informações e pela conduta de sua militância, comprometendo-se a indenizar e resguardar a plataforma de qualquer demanda judicial ou administrativa decorrente de atos praticados em desrespeito à legislação brasileira.
                     </p>
                   </div>
                 </div>
