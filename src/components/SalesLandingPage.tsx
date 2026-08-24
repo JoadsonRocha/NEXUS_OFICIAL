@@ -475,13 +475,13 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </div>
 
               <a
-                href={ASAAS_PLAN_LINKS.startTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Municipal%20T%C3%A1tico%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.startTatico}
+                href={`https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Ol%C3%A1!%20Gostaria%20de%20adquirir%20o%20Plano%20Municipal%20T%C3%A1tico%20via%20PIX.`}
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => trackAdsConversion(597.97)}
                 className="w-full py-3 rounded-xl bg-[#1e293b] hover:bg-slate-700 text-slate-100 font-bold text-xs text-center block transition-all active:scale-95 border border-white/10"
               >
-                Contratar Municipal Tático
+                Contratar via WhatsApp (PIX)
               </a>
             </div>
 
@@ -517,13 +517,13 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </div>
 
               <a
-                href={ASAAS_PLAN_LINKS.comandoTatico.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Estadual%20Estrat%C3%A9gico%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.comandoTatico}
+                href={`https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Ol%C3%A1!%20Gostaria%20de%20adquirir%20o%20Plano%20Estadual%20Estrat%C3%A9gico%20via%20PIX.`}
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => trackAdsConversion(997.97)}
                 className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs text-center block shadow-lg shadow-blue-600/30 transition-all active:scale-95"
               >
-                Garantir Estadual Estratégico
+                Garantir via WhatsApp (PIX)
               </a>
             </div>
 
@@ -555,20 +555,31 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
               </div>
 
               <a
-                href={ASAAS_PLAN_LINKS.dominioTotal.includes("SEU_LINK") ? `https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Quero%20contratar%20o%20Plano%20Nacional%20Soberano%20do%20Nexus%20Pol%C3%ADtica.` : ASAAS_PLAN_LINKS.dominioTotal}
+                href={`https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}?text=Ol%C3%A1!%20Gostaria%20de%20adquirir%20o%20Plano%20Nacional%20Soberano%20via%20PIX.`}
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => trackAdsConversion(1497.97)}
                 className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs text-center block transition-all active:scale-95 shadow-lg shadow-amber-600/20"
               >
-                Contratar Nacional Soberano
+                Contratar via WhatsApp (PIX)
               </a>
             </div>
 
           </div>
 
+          {/* AVISO DE CONTRATAÇÃO VIA PIX E LIBERAÇÃO MANUAL (ÁREA SOLICITADA) */}
+          <div className="mt-8 bg-gradient-to-r from-blue-950/60 via-[#0f172a] to-emerald-950/60 border border-blue-500/30 rounded-2xl p-5 md:p-6 text-center max-w-4xl mx-auto shadow-lg space-y-2">
+            <h4 className="text-sm md:text-base font-black text-slate-100 flex items-center justify-center gap-2">
+              <Zap className="w-4 h-4 text-amber-400" />
+              Contratação Direta via PIX & Liberação Manual
+            </h4>
+            <p className="text-xs text-slate-300 leading-relaxed max-w-2xl mx-auto">
+              Aproveite <strong>14 dias grátis</strong> na Degustação de Campo. Para contratar os planos, efetue o pagamento via PIX e fale com o proprietário <strong>Sérgio</strong> no WhatsApp <a href={`https://wa.me/${COMMERCIAL_WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer" className="text-emerald-400 font-black hover:underline">(95) 99158-7413</a> para ter o seu acesso e da sua equipe liberados imediatamente.
+            </p>
+          </div>
+
           {/* GARANTIA DE 7 DIAS */}
-          <div className="mt-10 bg-[#0f172a] border border-emerald-500/30 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-5 max-w-4xl mx-auto shadow-lg shadow-emerald-950/20">
+          <div className="mt-6 bg-[#0f172a] border border-emerald-500/30 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-5 max-w-4xl mx-auto shadow-lg shadow-emerald-950/20">
             <div className="flex items-center gap-4 text-left">
               <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-400 shrink-0">
                 <ShieldCheck className="w-9 h-9" />
@@ -761,7 +772,7 @@ export const SalesLandingPage: React.FC<SalesLandingPageProps> = ({ onAccessSyst
                   <div className="p-4 bg-blue-950/30 border border-blue-500/30 rounded-xl space-y-2">
                     <h4 className="font-bold text-blue-300 text-sm flex items-center gap-2">
                       <Lock className="w-4 h-4 text-blue-400" />
-                      Privacidad dos Dados e Conformidade com a LGPD
+                      Privacidade dos Dados e Conformidade com a LGPD
                     </h4>
                     <p className="text-slate-300">
                       Os dados da sua campanha são seus. O Nexus Política não compartilha, não aluga e não comercializa nenhuma informação com terceiros.
